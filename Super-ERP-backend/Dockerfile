@@ -18,6 +18,6 @@ EXPOSE 5000
 USER node
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-CMD wget --quiet --tries=1 --spider http://localhost:5000/health/live || exit 1
+  CMD wget --quiet --tries=1 --spider http://localhost:5000/health/live || exit 1
 
 CMD ["npm","start"]
