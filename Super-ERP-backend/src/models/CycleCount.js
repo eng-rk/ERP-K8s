@@ -85,7 +85,6 @@ const cycleCountSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-cycleCountSchema.index({ countId: 1 });
 cycleCountSchema.index({ warehouse: 1, subinventory: 1, status: 1 });
 
 module.exports = mongoose.model('CycleCount', cycleCountSchema);

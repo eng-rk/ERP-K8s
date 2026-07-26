@@ -64,7 +64,6 @@ const serialSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-serialSchema.index({ serialNumber: 1 });
 serialSchema.index({ item: 1, warehouse: 1 });
 
 module.exports = mongoose.model('Serial', serialSchema);

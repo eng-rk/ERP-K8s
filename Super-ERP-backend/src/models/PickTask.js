@@ -92,7 +92,6 @@ const pickTaskSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-pickTaskSchema.index({ pickTaskId: 1 });
 pickTaskSchema.index({ shipmentId: 1, status: 1 });
 pickTaskSchema.index({ assignedTo: 1, status: 1 });
 

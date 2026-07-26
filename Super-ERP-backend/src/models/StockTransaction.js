@@ -126,7 +126,6 @@ const stockTransactionSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-stockTransactionSchema.index({ transactionId: 1 });
 stockTransactionSchema.index({ item: 1, warehouse: 1, createdAt: -1 });
 stockTransactionSchema.index({ referenceType: 1, referenceId: 1 });
 stockTransactionSchema.index({ performedBy: 1, createdAt: -1 });

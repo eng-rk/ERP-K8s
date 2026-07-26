@@ -105,7 +105,6 @@ const shipmentSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-shipmentSchema.index({ shipmentId: 1 });
 shipmentSchema.index({ orderReference: 1, status: 1 });
 shipmentSchema.index({ warehouse: 1, status: 1 });
 

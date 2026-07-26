@@ -108,7 +108,6 @@ const inventoryAdjustmentSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-inventoryAdjustmentSchema.index({ adjustmentId: 1 });
 inventoryAdjustmentSchema.index({ item: 1, warehouse: 1, status: 1 });
 
 module.exports = mongoose.model('InventoryAdjustment', inventoryAdjustmentSchema);
