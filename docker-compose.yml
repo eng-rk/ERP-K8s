@@ -1,0 +1,41 @@
+services:
+  database:
+    image: mongo:6.0
+    container_name: erp-database
+    ports:
+      - "27017:27017"
+    volumes:
+      - db-data:/data/db
+
+  backend:
+    build:
+      context: ./Super-ERP-backend
+      dockerfile: Dockerfile
+    container_name: erp-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://database:27017/super-erp
+      - JWT_SECRET=test_jwt_secret_change_in_prod
+      - ENCRYPTION_SECRET=test_encryption_secret_change_in_prod
+      - ENABLE_CRON_JOBS=true
+    depends_on:
+      - database
+    volumes:
+      - uploads-data:/usr/src/app/uploads
+
+  frontend:
+    build:
+      context: ./Super-ERP-frontend
+      dockerfile: Dockerfile
+    container_name: erp-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  db-data:
+  uploads-data:
