@@ -187,7 +187,7 @@ const runStartupTasks = () => {
         } catch (err) {
           console.error('[Cron] Schedule reminder error:', err);
         }
-      });
+      }));
       console.log('[Cron] Monthly schedule reminder job registered (25th of each month, 9:00 AM)');
 
       scheduledTasks.push(cron.schedule('0 * * * *', async () => {
@@ -207,7 +207,7 @@ const runStartupTasks = () => {
         } catch (err) {
           console.error('[Cron] Offer expiry error:', err.message);
         }
-      });
+      }));
       console.log('[Cron] Hourly offer expiry job registered');
 
       // ── Inventory: daily expiry scan (6:00 AM) ──────────────────────────────
@@ -253,7 +253,7 @@ const runStartupTasks = () => {
         } catch (err) {
           console.error('[Cron:Inventory] Expiry scan error:', err.message);
         }
-      });
+      }));
       console.log('[Cron] Daily inventory expiry scan registered (6:00 AM)');
 
       // ── Inventory: reorder point breach check (every 4 hours) ───────────────
@@ -303,7 +303,7 @@ const runStartupTasks = () => {
         } catch (err) {
           console.error('[Cron:Inventory] Reorder breach check error:', err.message);
         }
-      });
+      }));
       console.log('[Cron] Inventory reorder breach check registered (every 4 hours)');
     } else {
       console.log('[Startup] Background jobs disabled. Running in web-only mode.');
