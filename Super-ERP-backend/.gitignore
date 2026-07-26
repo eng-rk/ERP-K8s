@@ -1,22 +1,36 @@
 # Environment secrets
 .env
 .env.*
+.env*
 
-# Dependencies
+# Dependencies (Do NOT ignore package-lock.json to ensure deterministic container builds)
 node_modules/
+/yarn.lock
+/pnpm-lock.yaml
 
-# Uploads (user files)
+# Uploads (user files - ignored but dynamically created by ensureDirectories on boot)
 uploads/
 
 # Build output
 dist/
 build/
+coverage/
 
 # Vercel build output
 .vercel/
-# Lockfiles (let Vercel resolve deps)
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
 .vercel
-.env*
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+
+# Operating System files
+.DS_Store
+Thumbs.db
