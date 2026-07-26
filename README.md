@@ -245,5 +245,5 @@ curl http://localhost:5000/health/ready
 ---
 
 <p center>
-  Developed with ❤️ for <b>Super ERP</b> Kubernetes & Cloud Native Migration.
+  Developed for <b>Super ERP</b> Kubernetes & Cloud Native Migration.
 </p>

@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: rowank/super-erp-backend:v2
+          image: rowank/super-erp-backend:v3
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5000
