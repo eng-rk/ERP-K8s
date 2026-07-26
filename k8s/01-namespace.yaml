@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: super-erp
+  labels:
+    app.kubernetes.io/name: super-erp
+    app.kubernetes.io/managed-by: kubectl
