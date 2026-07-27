@@ -4,7 +4,7 @@ const Lead = require('../src/models/Lead');
 const Ticket = require('../src/models/Ticket');
 const Campaign = require('../src/models/Campaign');
 
-mongoose.connect('mongodb://localhost:27017/super-crm');
+mongoose.connect('mongodb://localhost:27017/super-erp');
 
 const seedData = async () => {
   try {

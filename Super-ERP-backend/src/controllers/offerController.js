@@ -7,6 +7,110 @@ const crypto = require('crypto');
 const { buildPaymentLink } = require('./paymentController');
 const { getGlobalEmailConfig, sendEmail } = require('../services/emailService');
 const EmailTemplate = require('../models/EmailTemplate');
+const OfferEmail = require('../models/OfferEmail');
+const { initiateTelephonyCall } = require('../services/telephonyService');
+
+const formatCurrency = (value, currencyCode = 'USD', currencySymbol = '') => {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return `${currencySymbol || currencyCode || 'USD'}0.00`;
+  }
+
+  const normalizedCurrency = String(currencyCode || 'USD').trim().toUpperCase();
+  const symbol = currencySymbol || (normalizedCurrency === 'USD' ? '$' : normalizedCurrency === 'EUR' ? '€' : normalizedCurrency === 'EGP' ? 'E£' : '');
+
+  if (symbol) {
+    return `${symbol}${numericValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  return `${normalizedCurrency} ${numericValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+const formatOfferDate = (value) => {
+  if (!value) return 'TBD';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 'TBD' : date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+};
+
+const getLeadDisplayName = (lead) => {
+  if (!lead) return 'there';
+  if (lead.name && String(lead.name).trim()) return String(lead.name).trim();
+  const first = lead.firstName ? String(lead.firstName).trim() : '';
+  const last = lead.lastName ? String(lead.lastName).trim() : '';
+  return [first, last].filter(Boolean).join(' ') || 'there';
+};
+
+const buildOfferEmailData = (offer, req, branding, payLink) => {
+  const lead = offer?.lead || {};
+  const leadName = getLeadDisplayName(lead);
+  const senderFirst = req?.user?.firstName || '';
+  const senderLast = req?.user?.lastName || '';
+
+  return {
+    companyName: branding?.companyName || 'Super CRM',
+    companyLogo: branding?.companyLogo || '',
+    currency: offer?.currency || 'USD',
+    currencySymbol: offer?.currencySymbol || '',
+    lead: {
+      name: leadName,
+      firstName: lead?.firstName || leadName.split(' ')[0] || '',
+      lastName: lead?.lastName || leadName.split(' ').slice(1).join(' ') || '',
+      email: lead?.email || '',
+      phone: lead?.phone || '',
+    },
+    offer: {
+      title: offer?.title || 'Proposal',
+      description: offer?.description || 'A tailored solution prepared for your review.',
+      price: offer?.price || 0,
+      currency: offer?.currency || 'USD',
+      currencySymbol: offer?.currencySymbol || '',
+      validUntil: offer?.validUntil || null,
+      id: offer?._id ? offer._id.toString().slice(-6).toUpperCase() : 'OFFER',
+    },
+    payLink,
+    sender: {
+      firstName: senderFirst,
+      lastName: senderLast,
+      name: [senderFirst, senderLast].filter(Boolean).join(' ') || 'Super CRM Team',
+    },
+  };
+};
+
+const replaceOfferPlaceholders = (content, data) => {
+  if (!content || typeof content !== 'string') return '';
+
+  const specialValues = {
+    'offer.price': formatCurrency(data?.offer?.price || 0, data?.offer?.currency || data?.currency || 'USD', data?.offer?.currencySymbol || data?.currencySymbol || ''),
+    'offer.validUntil': formatOfferDate(data?.offer?.validUntil),
+    'offer.id': data?.offer?.id || '',
+    'lead.name': data?.lead?.name || '',
+    'lead.firstName': data?.lead?.firstName || '',
+    'lead.lastName': data?.lead?.lastName || '',
+    'lead.email': data?.lead?.email || '',
+    'offer.title': data?.offer?.title || '',
+    'offer.description': data?.offer?.description || '',
+    'payLink': data?.payLink || '',
+    'companyName': data?.companyName || '',
+    'sender.firstName': data?.sender?.firstName || '',
+    'sender.lastName': data?.sender?.lastName || '',
+    'sender.name': data?.sender?.name || '',
+  };
+
+  return content.replace(/\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}/g, (match, key) => {
+    if (specialValues[key] !== undefined) return specialValues[key];
+
+    const value = key.split('.').reduce((current, segment) => {
+      if (!current || typeof current !== 'object') return '';
+      return current[segment] ?? '';
+    }, data);
+
+    if (value === null || value === undefined || value === '') return '';
+
+    if (typeof value === 'number') return value.toLocaleString('en-US');
+    if (value instanceof Date) return value.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    return String(value);
+  });
+};
 
 // @desc    Get offers for a lead
 // @route   GET /api/offers/lead/:leadId
@@ -51,7 +155,7 @@ exports.createOffer = async (req, res) => {
     const body = req.body || {};
     console.log('[createOffer] request body:', JSON.stringify(body));
 
-    const { lead, title, description, price, validUntil, notes, offerType, catalogProduct } = body;
+    const { lead, title, description, price, validUntil, notes, offerType, catalogProduct, currency, currencySymbol } = body;
 
     if (!lead || String(lead).trim() === '') {
       return res.status(400).json({ message: 'Lead is required' });
@@ -81,6 +185,18 @@ exports.createOffer = async (req, res) => {
 
     if (numPrice < 0) {
       return res.status(400).json({ message: 'Price cannot be negative' });
+    }
+
+    const SystemSetting = require('../models/SystemSetting');
+    const defaultCurrencySetting = await SystemSetting.findOne({ key: 'defaultCurrency' });
+    const currencyCode = String(currency || defaultCurrencySetting?.value || 'USD').trim().toUpperCase();
+    const currencyInfoSetting = await SystemSetting.findOne({ key: 'currencies' });
+    const currencyInfo = Array.isArray(currencyInfoSetting?.value) ? currencyInfoSetting.value.find((entry) => String(entry?.code || '').toUpperCase() === currencyCode) : null;
+    const resolvedCurrencySymbol = currencySymbol || currencyInfo?.symbol || '';
+    const minSetting = await SystemSetting.findOne({ key: offerType === 'Product' ? 'productPriceMin' : 'offerPriceMin' });
+    const minPrice = minSetting?.value ?? 0;
+    if (numPrice < minPrice) {
+      return res.status(400).json({ message: `Minimum price for ${offerType === 'Product' ? 'product' : 'offer'} is ${minPrice.toFixed(2)}` });
     }
 
     if (!validUntil || String(validUntil).trim() === '') {
@@ -127,6 +243,8 @@ exports.createOffer = async (req, res) => {
       title: String(title).trim(),
       description: String(description).trim(),
       price: numPrice,
+      currency: currencyCode,
+      currencySymbol: resolvedCurrencySymbol,
       validUntil: parsedValidUntil,
       offerType: offerType || 'Service',
       catalogProduct: catalogProductId,
@@ -198,6 +316,19 @@ exports.updateOffer = async (req, res) => {
       return res.json({ success: true, data: updated });
     }
 
+    if (req.body.price !== undefined) {
+      const newPrice = Number(req.body.price);
+      if (Number.isNaN(newPrice) || newPrice < 0) {
+        return res.status(400).json({ message: 'Price must be a valid non-negative number' });
+      }
+      const SystemSetting = require('../models/SystemSetting');
+      const minSetting = await SystemSetting.findOne({ key: offer.offerType === 'Product' ? 'productPriceMin' : 'offerPriceMin' });
+      const minPrice = minSetting?.value ?? 0;
+      if (newPrice < minPrice) {
+        return res.status(400).json({ message: `Minimum price for ${offer.offerType === 'Product' ? 'product' : 'offer'} is ${minPrice.toFixed(2)}` });
+      }
+    }
+
     const updated = await Offer.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
       .populate('createdBy', 'firstName lastName role');
     res.json({ success: true, data: updated });
@@ -228,12 +359,164 @@ exports.deleteOffer = async (req, res) => {
   }
 };
 
+const injectBrandingHeader = (html, branding) => {
+  if (!html || typeof html !== 'string') return html;
+
+  const companyName = branding?.companyName || 'Super CRM';
+  const companyLogo = branding?.companyLogo || '';
+
+  if (!companyName && !companyLogo) return html;
+
+  const logoMarkup = companyLogo && typeof companyLogo === 'string' && companyLogo.startsWith('data:image/')
+    ? `<img src="${companyLogo}" alt="${companyName}" style="height:54px;width:auto;max-width:180px;display:block;margin:0 auto 14px;border:0;" />`
+    : '';
+
+  const headerMarkup = `
+    <div style="margin:0 0 24px;padding:24px 24px 20px;background:linear-gradient(135deg,#ffffff 0%,#f8fafc 100%);border:1px solid #e2e8f0;border-radius:16px;box-shadow:0 10px 30px rgba(15,23,42,0.05);">
+      <div style="text-align:center;">
+        ${logoMarkup}
+        <div style="font-size:24px;font-weight:700;color:#111827;">${companyName}</div>
+      </div>
+    </div>`;
+
+  if (html.includes('<body')) {
+    return html.replace(/<body[^>]*>/i, (match) => `${match}${headerMarkup}`);
+  }
+
+  return `${headerMarkup}${html}`;
+};
+
+const injectOfferImagesBeforePaymentButton = (html, offer, payLink) => {
+  if (!html || typeof html !== 'string' || !offer?.images?.length) return html;
+
+  const imagesHtml = `
+    <div style="margin: 24px 0 28px; text-align: center;">
+      ${offer.images.map((img) => {
+        const imageUrl = img?.url || '';
+        const altText = img?.caption || 'Offer image';
+        return `<img src="${imageUrl}" alt="${altText}" style="display:block;max-width:480px;width:100%;height:auto;margin:0 auto 16px;border-radius:14px;border:1px solid #e2e8f0;box-shadow:0 10px 24px rgba(15,23,42,0.08);background:#ffffff;" />`;
+      }).join('')}
+    </div>`;
+
+  if (!payLink) {
+    return html.includes('</body>')
+      ? html.replace('</body>', `${imagesHtml}</body>`)
+      : html.includes('</html>')
+        ? html.replace('</html>', `${imagesHtml}</html>`)
+        : `${html}${imagesHtml}`;
+  }
+
+  const escapedPayLink = payLink.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(`(<a[^>]*href=["']${escapedPayLink}["'][^>]*>)`, 'i');
+
+  if (pattern.test(html)) {
+    return html.replace(pattern, `${imagesHtml}$1`);
+  }
+
+  return html.includes('</body>')
+    ? html.replace('</body>', `${imagesHtml}</body>`)
+    : html.includes('</html>')
+      ? html.replace('</html>', `${imagesHtml}</html>`)
+      : `${html}${imagesHtml}`;
+};
+
+const prepareEmailWithCid = (html, branding) => {
+  const attachments = [];
+  let cidCounter = 0;
+
+  const logoPlaceholder = '__SUPER_CRM_LOGO_PLACEHOLDER__';
+  let htmlWithLogoPlaceholder = html;
+
+  if (branding?.companyLogo && typeof branding.companyLogo === 'string' && branding.companyLogo.startsWith('data:image/')) {
+    htmlWithLogoPlaceholder = htmlWithLogoPlaceholder.split(branding.companyLogo).join(logoPlaceholder);
+  }
+
+  let modifiedHtml = htmlWithLogoPlaceholder.replace(/src=(["'])(data:image\/[^;]+;base64,[^"']*)\1/g, (match, quote, base64Data) => {
+    const cid = `img_${++cidCounter}_${Date.now()}`;
+    const mimeMatch = base64Data.match(/data:(image\/[^;]+);base64,/);
+    const contentType = mimeMatch ? mimeMatch[1] : 'image/png';
+
+    attachments.push({
+      cid,
+      content: Buffer.from(base64Data.replace(/^data:image\/\w+;base64,/, ''), 'base64'),
+      contentType,
+      filename: `image_${cidCounter}.png`,
+    });
+
+    return `src=${quote}cid:${cid}${quote}`;
+  });
+
+  if (branding?.companyLogo && typeof branding.companyLogo === 'string' && branding.companyLogo.startsWith('data:image/')) {
+    modifiedHtml = modifiedHtml.split(logoPlaceholder).join(branding.companyLogo);
+  }
+
+  return { html: modifiedHtml, attachments };
+};
+
+exports.injectBrandingHeader = injectBrandingHeader;
+exports.injectOfferImagesBeforePaymentButton = injectOfferImagesBeforePaymentButton;
+exports.prepareEmailWithCid = prepareEmailWithCid;
+
+exports.getOfferCommunicationLog = async (req, res) => {
+  try {
+    const offer = await Offer.findById(req.params.id);
+    if (!offer) return res.status(404).json({ message: 'Offer not found' });
+
+    const logs = await OfferEmail.find({ offerId: offer._id })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({ success: true, data: logs });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to load offer communications', error: error.message });
+  }
+};
+
+exports.addOfferCommunicationReply = async (req, res) => {
+  try {
+    const offer = await Offer.findById(req.params.id).populate('lead');
+    if (!offer) return res.status(404).json({ message: 'Offer not found' });
+
+    const { body, subject } = req.body || {};
+    if (!body || !String(body).trim()) {
+      return res.status(400).json({ message: 'Reply body is required' });
+    }
+
+    const entry = await OfferEmail.create({
+      offerId: offer._id,
+      leadId: offer.lead._id,
+      direction: 'inbound',
+      subject: subject || 'Customer reply',
+      body: String(body).trim(),
+      status: 'received',
+      senderName: offer.lead?.name || 'Customer',
+      senderEmail: offer.lead?.email || '',
+      recipientEmail: req.user?.email || '',
+      recipientName: `${req.user?.firstName || ''} ${req.user?.lastName || ''}`.trim() || 'Sales Team',
+      createdBy: req.user?._id || null,
+      metadata: { source: 'offer-thread' },
+    });
+
+    res.status(201).json({ success: true, data: entry });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to save customer reply', error: error.message });
+  }
+};
+
 // @desc    Send offer via email/SMS
 // @route   POST /api/offers/:id/send
 // @access  Private
 exports.sendOffer = async (req, res) => {
   try {
-    const { method, templateId } = req.body; // 'Email', 'SMS', or 'Both'
+    const requestBody = req.body || {};
+    const requestedMethod = typeof requestBody.method === 'string' ? requestBody.method : 'Email';
+    const { templateId, to, cc, bcc, subject, from, html, attachments: composerAttachments } = requestBody;
+    const uploadedFiles = Array.isArray(req.files) ? req.files : [];
+    const parsedComposerAttachments = Array.isArray(composerAttachments)
+      ? composerAttachments
+      : (Array.isArray(requestBody.attachments) ? requestBody.attachments : []);
+    console.log('[sendOffer] requestBody keys=%s method=%s files=%d', Object.keys(requestBody).join(','), requestedMethod, uploadedFiles.length);
+    console.log('[sendOffer] attachments=%O', parsedComposerAttachments.map(a => ({ name: a?.name, type: a?.type, url: typeof a?.url === 'string' ? a.url.slice(0, 40) : a?.url })));
 
     const offer = await Offer.findById(req.params.id).populate('lead').populate('createdBy', 'firstName lastName');
     if (!offer) return res.status(404).json({ message: 'Offer not found' });
@@ -245,27 +528,9 @@ exports.sendOffer = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to send this offer' });
     }
 
-    // Ensure the offer has a payment token so a public payment link can be
-    // shared with the customer. Generated once and reused for all resends.
-    if (!offer.paymentToken) {
-      let token;
-      let exists = true;
-      while (exists) {
-        token = crypto.randomBytes(16).toString('hex');
-        exists = await Offer.exists({ paymentToken: token });
-      }
-      offer.paymentToken = token;
-    }
+    const method = ['Email', 'SMS', 'Both'].includes(requestedMethod) ? requestedMethod : 'Email';
 
     const payLink = buildPaymentLink(offer.paymentToken);
-
-    if (!['Email', 'SMS', 'Both'].includes(method)) {
-      return res.status(400).json({ message: 'Send method must be Email, SMS or Both' });
-    }
-
-    // Build message content
-    const emailSubject = `New Offer: ${offer.title}`;
-    const smsMessage = `${offer.title} - $${offer.price}. Valid until ${new Date(offer.validUntil).toLocaleDateString()}. Pay here: ${payLink}`;
 
     let emailSent = true;
     let smsSent = true;
@@ -274,119 +539,187 @@ exports.sendOffer = async (req, res) => {
     if (method === 'Email' || method === 'Both') {
       const brandingSetting = await SystemSetting.findOne({ key: 'branding' });
       const branding = brandingSetting?.value || { companyName: 'Super CRM', companyLogo: '' };
-      
-      let emailHtml = '';
-      let brandedSubject = `${branding.companyName || 'Super CRM'} — ${emailSubject}`;
-      
-      try {
-        let userTemplate = null;
-        if (templateId) {
-          userTemplate = await EmailTemplate.findById(templateId);
-        } else {
-          userTemplate = await EmailTemplate.findOne({ 
-            $or: [
-              { createdBy: offer.createdBy._id, isDefault: true },
-              { isDefault: true }
-            ]
-          }).sort({ createdAt: -1 });
+
+      const emailData = buildOfferEmailData(offer, req, branding, payLink);
+      const offerCurrency = offer?.currency || 'USD';
+      const offerCurrencySymbol = offer?.currencySymbol || '';
+      const leadName = emailData.lead.name || getLeadDisplayName(offer?.lead);
+
+      let emailHtml = html || '';
+      let brandedSubject = subject || `Your offer is ready from ${branding.companyName || 'Super CRM'}`;
+
+      if (!emailHtml) {
+        try {
+          let userTemplate = null;
+          if (templateId) {
+            userTemplate = await EmailTemplate.findById(templateId);
+          } else {
+            userTemplate = await EmailTemplate.findOne({
+              $or: [
+                { createdBy: offer.createdBy._id, isDefault: true },
+                { isDefault: true }
+              ]
+            }).sort({ createdAt: -1 });
+          }
+
+          if (userTemplate) {
+            const { replacePlaceholders, renderTemplateBlocks } = require('./templateController');
+            const templateData = {
+              companyName: branding.companyName || 'Super CRM',
+              companyLogo: branding.companyLogo || '',
+              lead: {
+                name: offer.lead?.name || getLeadDisplayName(offer.lead),
+                firstName: offer.lead?.firstName || '',
+                lastName: offer.lead?.lastName || '',
+                email: offer.lead?.email || '',
+                phone: offer.lead?.phone || ''
+              },
+              offer: {
+                title: offer.title,
+                description: offer.description,
+                price: offer.price,
+                validUntil: offer.validUntil
+              },
+              payLink,
+              sender: { firstName: req.user.firstName, lastName: req.user.lastName }
+            };
+
+            brandedSubject = replacePlaceholders(userTemplate.subject, templateData);
+            emailHtml = renderTemplateBlocks(userTemplate.blocks, templateData);
+          }
+        } catch (templateErr) {
+          console.error('Template render error, falling back to default:', templateErr.message);
         }
-        
-        if (userTemplate) {
-          const { replacePlaceholders, renderTemplateBlocks } = require('./templateController');
-          const templateData = {
-            companyName: branding.companyName || 'Super CRM',
-            companyLogo: branding.companyLogo || '',
-            lead: { name: offer.lead.name, email: offer.lead.email },
-            offer: {
-              title: offer.title,
-              description: offer.description,
-              price: offer.price,
-              validUntil: offer.validUntil
-            },
-            payLink,
-            sender: { firstName: offer.createdBy.firstName, lastName: offer.createdBy.lastName }
-          };
-          
-          brandedSubject = replacePlaceholders(userTemplate.subject, templateData);
-          emailHtml = renderTemplateBlocks(userTemplate.blocks, templateData);
-        }
-      } catch (templateErr) {
-        console.error('Template render error, falling back to default:', templateErr.message);
       }
-      
+
       if (!emailHtml) {
         const emailBody = `
-Hello ${offer.lead.name},
+Hello ${leadName},
 
-We have a special offer for you!
+We have prepared a tailored offer for you from ${branding.companyName || 'Super CRM'}.
 
 ${offer.title}
 ${offer.description}
 
-Price: $${offer.price.toLocaleString()}
-Valid Until: ${new Date(offer.validUntil).toLocaleDateString()}
+Price: ${formatCurrency(offer.price, offerCurrency, offerCurrencySymbol)}
+Valid Until: ${formatOfferDate(offer.validUntil)}
 
 Complete your payment here:
 ${payLink}
 
 Best regards,
-${offer.createdBy.firstName} ${offer.createdBy.lastName}
+${req.user.firstName} ${req.user.lastName}
         `.trim();
-        
+
         emailHtml = `
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,Helvetica,sans-serif;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f4f4f4;">
-    <tr><td align="center" style="padding:24px 0;">
-      <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="background-color:#ffffff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);overflow:hidden;">
-        <tr><td style="background-color:#111827;padding:24px 32px;color:#ffffff;display:flex;align-items:center;gap:12px;">
-          ${branding.companyLogo ? `<img src="${branding.companyLogo}" alt="${branding.companyName}" width="48" height="48" style="object-fit:contain;border-radius:8px;" />` : ''}
-          <div>
-            <h1 style="margin:0;font-size:20px;font-weight:600;">${branding.companyName || 'Super CRM'}</h1>
-            <p style="margin:4px 0 0;font-size:13px;color:#9ca3af;">Offer from ${branding.companyName || 'Super CRM'}</p>
-          </div>
-        </td></tr>
-        <tr><td style="padding:32px;color:#111827;">
-          <p style="margin:0 0 16px;font-size:14px;line-height:1.6;">Hello ${offer.lead.name},</p>
-          <p style="margin:0 0 16px;font-size:14px;line-height:1.6;">We have shared a new offer with you from ${branding.companyName || 'Super CRM'}.</p>
-          <h2 style="margin:0 0 12px;font-size:18px;">${offer.title}</h2>
-          ${offer.images && offer.images.length > 0 ? `
-            <div style="margin:0 0 20px;">
-              ${offer.images.map(img => `
-                <div style="margin-bottom:12px;">
-                  <img src="${img.url}" alt="${img.caption || 'Offer image'}" style="max-width:100%;height:auto;border-radius:8px;border:1px solid #e5e7eb;" />
-                  ${img.caption ? `<p style="margin:4px 0 0;font-size:12px;color:#6b7280;">${img.caption}</p>` : ''}
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Offer Is Ready</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f8f8f8;font-family:Arial, Helvetica, sans-serif;color:#333333;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f8f8f8;padding:30px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 10px 30px rgba(0, 0, 0, 0.06);">
+          <tr>
+            <td style="padding:32px 32px 20px;text-align:center;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
+                <tr>
+                  <td style="text-align:center;">
+                    ${branding.companyLogo ? `<img src="${branding.companyLogo}" alt="${branding.companyName || 'Company logo'}" style="height:50px;width:auto;max-width:180px;display:block;margin:0 auto 16px;border:0;" />` : `<div style="height:50px;width:50px;line-height:50px;text-align:center;border-radius:50%;background:#d6a24c;color:#ffffff;font-weight:700;font-size:18px;margin:0 auto 16px;">${(branding.companyName || 'SC').slice(0, 2).toUpperCase()}</div>`}
+                    <div style="font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#d6a24c;font-weight:700;margin-bottom:6px;">Professional Offer</div>
+                    <div style="font-size:24px;font-weight:700;color:#333333;">${branding.companyName || 'Super CRM'}</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 32px 24px;">
+              <div style="text-align:center;padding:10px 0 24px;">
+                <div style="font-size:34px;line-height:1.2;font-family:Georgia, 'Times New Roman', serif;color:#444444;margin-bottom:6px;">Welcome</div>
+                <div style="font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#d6a24c;font-weight:700;margin-bottom:8px;">to the</div>
+                <div style="font-size:30px;font-weight:700;color:#333333;">TEAM</div>
+              </div>
+              <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:#555555;">Hello ${leadName},</p>
+              <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:#555555;">We are pleased to share your personalized offer for <strong>${offer.title}</strong> with ${branding.companyName || 'our team'}. The details below outline the proposal, pricing, and the next step to review and accept it.</p>
+              <div style="background:#faf7f0;border:1px solid #efe3c8;border-radius:6px;padding:20px;margin:24px 0;">
+                <div style="font-size:20px;font-weight:700;color:#333333;margin-bottom:10px;">${offer.title}</div>
+                <p style="margin:0 0 12px;font-size:15px;line-height:1.7;color:#555555;">${offer.description}</p>
+                <div style="font-size:14px;color:#666666;line-height:1.8;">
+                  <div><strong>Offer Value:</strong> ${formatCurrency(offer.price, offerCurrency, offerCurrencySymbol)}</div>
+                  <div><strong>Valid Until:</strong> ${formatOfferDate(offer.validUntil)}</div>
+                  <div><strong>Offer ID:</strong> #${offer._id ? offer._id.toString().slice(-6).toUpperCase() : 'OFFER'}</div>
                 </div>
-              `).join('')}
-            </div>
-          ` : ''}
-          <p style="margin:0 0 16px;font-size:14px;line-height:1.6;">${offer.description}</p>
-          <p style="margin:0 0 8px;font-size:14px;"><strong>Price:</strong> $${offer.price.toLocaleString()}</p>
-          <p style="margin:0 0 24px;font-size:14px;"><strong>Valid Until:</strong> ${new Date(offer.validUntil).toLocaleDateString()}</p>
-          <a href="${payLink}" style="display:inline-block;background-color:#2563eb;color:#ffffff;text-decoration:none;padding:14px 24px;border-radius:8px;font-weight:600;">Pay Now — $${offer.price.toLocaleString()}</a>
-          <p style="margin:24px 0 0;font-size:12px;color:#6b7280;line-height:1.6;">If you have any questions, reply to this email.</p>
-          <p style="margin:16px 0 0;font-size:14px;line-height:1.6;">Best regards,<br />${offer.createdBy.firstName} ${offer.createdBy.lastName}</p>
-        </td></tr>
-      </table>
-    </td></tr>
+              </div>
+              <p style="margin:0 0 24px;font-size:15px;line-height:1.7;color:#333333;font-weight:700;">We welcome you onboard and look forward to working with you to take this opportunity to the next level.</p>
+              <div style="text-align:center;margin:28px 0 8px;">
+                <a href="${payLink}" style="display:inline-block;background-color:#1f2937;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:5px;font-weight:700;font-size:15px;min-height:44px;line-height:1;">Review & Pay Online</a>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 32px 32px;">
+              <div style="border-top:1px solid #eeeeee;padding-top:24px;margin-top:12px;font-size:14px;line-height:1.7;color:#666666;">
+                Best regards,<br />
+                <strong>${req.user.firstName} ${req.user.lastName}</strong><br />
+                ${branding.companyName || 'Super CRM'}
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
   </table>
 </body>
 </html>
         `.trim();
       }
-      
+
+      emailHtml = replaceOfferPlaceholders(emailHtml, emailData);
+      brandedSubject = replaceOfferPlaceholders(brandedSubject, emailData);
+      emailHtml = injectBrandingHeader(emailHtml, branding);
+      emailHtml = injectOfferImagesBeforePaymentButton(emailHtml, offer, payLink);
+
+      const { html: finalHtml, attachments: cidAttachments } = prepareEmailWithCid(emailHtml, branding);
+
+      const nodemailerAttachments = (cidAttachments || []).map((att) => ({
+        filename: att.filename || 'image.png',
+        cid: att.cid,
+        content: att.content || Buffer.from(''),
+        contentType: att.contentType || 'image/png',
+      }));
+
+      if (uploadedFiles.length > 0) {
+        for (const file of uploadedFiles) {
+          nodemailerAttachments.push({
+            filename: file.originalname,
+            content: file.buffer,
+            contentType: file.mimetype,
+          });
+        }
+      }
+
       try {
-        const createdByUser = await User.findById(offer.createdBy._id).select('+smtpPass');
+        const senderUser = await User.findById(req.user._id).select('+smtpPass');
         const globalCfg = await getGlobalEmailConfig();
-        await sendEmail(createdByUser, {
-          to: offer.lead.email,
+        console.log('[sendOffer] Global SMTP config:', globalCfg ? `host=${globalCfg.smtpHost} user=${globalCfg.smtpUser}` : 'not set');
+        console.log('[sendOffer] User SMTP config:', senderUser?.smtpHost ? `host=${senderUser.smtpHost} user=${senderUser.smtpUser}` : 'not set');
+        await sendEmail(senderUser, {
+          to: to || offer.lead.email,
+          cc: cc || undefined,
+          bcc: bcc || undefined,
           subject: brandedSubject,
-          text: emailHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(),
-          html: emailHtml,
+          text: finalHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(),
+          html: finalHtml,
+          replyTo: from || senderUser?.email,
+          attachments: nodemailerAttachments,
         }, globalCfg);
       } catch (err) {
+        console.error('[sendOffer] Email delivery failed:', err.message);
         emailSent = false;
         sendError = err;
       }
@@ -402,10 +735,10 @@ ${offer.createdBy.firstName} ${offer.createdBy.lastName}
     }
 
     if ((method === 'Email' || method === 'Both') && !emailSent) {
-      return res.status(500).json({ message: 'Failed to send offer by email', error: sendError?.message || 'Email send failed' });
+      return res.status(500).json({ message: 'Failed to send offer by email', error: sendError?.message || 'Email send failed', hint: 'Verify SMTP settings in Admin > Settings or user profile.' });
     }
     if ((method === 'SMS' || method === 'Both') && !smsSent) {
-      return res.status(500).json({ message: 'Failed to send offer by SMS', error: sendError?.message || 'SMS send failed' });
+      return res.status(500).json({ message: 'Failed to send offer by SMS', error: sendError?.message || 'SMS send failed', hint: 'SMS provider not configured. Use Email only or integrate an SMS provider.' });
     }
 
     // Update offer status
@@ -414,6 +747,24 @@ ${offer.createdBy.firstName} ${offer.createdBy.lastName}
     offer.sentVia = method;
     await offer.save();
 
+    if (method === 'Email' || method === 'Both') {
+      await OfferEmail.create({
+        offerId: offer._id,
+        leadId: offer.lead._id,
+        direction: 'outbound',
+        subject: brandedSubject || `Offer sent: ${offer.title}`,
+        body: finalHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(),
+        status: emailSent ? 'sent' : 'failed',
+        senderId: req.user._id,
+        senderName: `${req.user?.firstName || ''} ${req.user?.lastName || ''}`.trim() || 'Sales Team',
+        senderEmail: senderUser?.email || req.user?.email || '',
+        recipientEmail: to || offer.lead.email,
+        recipientName: offer.lead?.name || 'Lead',
+        createdBy: req.user._id,
+        metadata: { method, subject: brandedSubject },
+      });
+    }
+
     res.json({ success: true, message: `Offer sent via ${method}`, data: offer });
   } catch (error) {
     res.status(500).json({ message: 'Failed to send offer', error: error.message });
@@ -421,10 +772,11 @@ ${offer.createdBy.firstName} ${offer.createdBy.lastName}
 };
 
 const OfferTemplate = require('../models/OfferTemplate');
-
-// @desc    Get all offer templates (user's own + public)
 // @route   GET /api/offers/templates
 // @access  Private
+exports.replaceOfferPlaceholders = replaceOfferPlaceholders;
+exports.injectOfferImagesBeforePaymentButton = injectOfferImagesBeforePaymentButton;
+
 exports.getTemplates = async (req, res) => {
   try {
     const templates = await OfferTemplate.find({
@@ -590,24 +942,37 @@ exports.initiateAvayaCall = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to call for this offer' });
     }
 
-    const agent = await User.findById(req.user._id);
-    if (!agent?.avayaExtension && !agent?.avayaConfig?.server) {
-      return res.status(400).json({ message: 'Agent is not configured for Avaya calling. Contact Technology team.' });
-    }
+    const telephonySetting = await SystemSetting.findOne({ key: 'telephony' });
+    const provider = String(req.body?.provider || telephonySetting?.value?.provider || 'avaya').toLowerCase();
+    const config = telephonySetting?.value || {};
+    const phoneNumber = String(req.body?.phone || offer?.lead?.phone || '').trim();
 
-    if (!offer.lead?.phone) {
+    if (!phoneNumber) {
       return res.status(400).json({ message: 'Lead does not have a phone number configured' });
     }
 
-    // TODO: Integrate with actual Avaya API
-    // This would typically trigger a call through Avaya's telephony system
-    console.log(`[Avaya Call] Agent: ${agent.avayaExtension}, Calling: ${offer.lead.phone}`);
-    console.log(`[Avaya Call] Lead: ${offer.lead.name}, Offer: ${offer.title}`);
+    const agent = await User.findById(req.user._id);
+    const extension = agent?.avayaExtension || agent?.ciscoExtension || agent?.extension || '';
+
+    const result = await initiateTelephonyCall({
+      config: { ...config, provider, extension },
+      phoneNumber,
+      agentExtension: extension,
+    });
+
+    console.log(`[${provider.toUpperCase()} Call] ${result.message}`);
+    console.log(`[${provider.toUpperCase()} Call] Lead: ${offer.lead.name}, Offer: ${offer.title}`);
 
     res.json({
       success: true,
-      message: `Call initiated to ${offer.lead.phone}`,
-      data: { leadPhone: offer.lead.phone, agentExtension: agent.avayaExtension }
+      message: result.message || `Call initiated to ${phoneNumber}`,
+      data: {
+        leadPhone: phoneNumber,
+        provider,
+        agentExtension: extension,
+        telephonyStatus: result.status,
+        callId: result.callId,
+      }
     });
   } catch (error) {
     res.status(500).json({ message: 'Failed to initiate call', error: error.message });

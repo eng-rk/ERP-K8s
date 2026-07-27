@@ -1,39 +1,33 @@
 const SystemSetting = require('../models/SystemSetting');
 const { decrypt } = require('./encryption');
 
-const createTransporter = async (user, globalConfig = null) => {
-  const nodemailer = require('nodemailer');
-  let host, port, secure, authUser, authPass, fallbackName;
-
+const getActiveEmailConfig = (user, globalConfig) => {
+  if (globalConfig && globalConfig.smtpHost && globalConfig.smtpUser && globalConfig.smtpPass) {
+    return { source: 'global', config: globalConfig };
+  }
   if (user && user.smtpHost && user.smtpUser) {
     const smtpPass = typeof user.getSmtpPass === 'function' ? user.getSmtpPass() : user.smtpPass;
-    if (!smtpPass) return null;
-    host = user.smtpHost;
-    port = user.smtpPort || 587;
-    secure = user.smtpSecure || false;
-    authUser = user.smtpUser;
-    authPass = smtpPass;
-    fallbackName = null;
-  } else if (globalConfig && globalConfig.smtpHost && globalConfig.smtpUser && globalConfig.smtpPass) {
-    host = globalConfig.smtpHost;
-    port = globalConfig.smtpPort || 587;
-    secure = globalConfig.smtpSecure || false;
-    authUser = globalConfig.smtpUser;
-    authPass = globalConfig.smtpPass;
-    fallbackName = 'Global SMTP';
-  } else {
-    return null;
+    if (smtpPass) {
+      return { source: 'user', config: { smtpHost: user.smtpHost, smtpPort: user.smtpPort || 587, smtpSecure: user.smtpSecure || false, smtpUser: user.smtpUser, smtpPass } };
+    }
   }
+  return { source: null, config: null };
+};
+
+const createTransporter = async (user, globalConfig = null) => {
+  const nodemailer = require('nodemailer');
+  const { config } = getActiveEmailConfig(user, globalConfig);
+  if (!config) return null;
 
   return nodemailer.createTransport({
-    host,
-    port,
-    secure,
+    host: config.smtpHost,
+    port: config.smtpPort || 587,
+    secure: config.smtpSecure || false,
     auth: {
-      user: authUser,
-      pass: authPass,
+      user: config.smtpUser,
+      pass: config.smtpPass,
     },
-    family: 4, // Force IPv4 to prevent IPv6 ENETUNREACH issues
+    family: 4,
   });
 };
 
@@ -43,19 +37,11 @@ const sendEmail = async (user, options, globalConfig = null) => {
     throw new Error('SMTP is not configured for this user and no global SMTP relay is available');
   }
 
+  const { source, config: activeConfig } = getActiveEmailConfig(user, globalConfig);
+  console.log(`[email] sendEmail using ${source} config: from=${activeConfig ? activeConfig.smtpUser : user.email} to=${options.to}`);
   const branding = await getBrandingConfig();
   const fromName = branding.companyName || 'Super CRM';
-  let fromAddress;
-  let replyTo;
-
-  if (user.smtpHost && user.smtpUser) {
-    fromAddress = user.smtpUser;
-  } else if (globalConfig && globalConfig.smtpHost && globalConfig.smtpUser) {
-    fromAddress = user.email;
-    replyTo = user.email;
-  } else {
-    fromAddress = user.email;
-  }
+  const fromAddress = activeConfig ? activeConfig.smtpUser : user.email;
 
   const mailOptions = {
     from: `"${fromName}" <${fromAddress}>`,
@@ -65,8 +51,35 @@ const sendEmail = async (user, options, globalConfig = null) => {
     html: options.html || options.text,
   };
 
+  if (options.cc) {
+    mailOptions.cc = options.cc;
+  }
+  if (options.bcc) {
+    mailOptions.bcc = options.bcc;
+  }
+
+  const replyTo = options.replyTo || user?.email;
   if (replyTo) {
     mailOptions.replyTo = replyTo;
+  }
+
+  if (options.attachments && options.attachments.length > 0) {
+    mailOptions.attachments = options.attachments.map(att => {
+      const base64Data = att.url ? att.url.replace(/^data:[^;]+;base64,/, '') : null;
+      if (att.cid) {
+        return {
+          filename: att.filename || 'image.png',
+          cid: att.cid,
+          content: att.content || (base64Data ? Buffer.from(base64Data, 'base64') : Buffer.from('')),
+          contentType: att.contentType || 'image/png',
+        };
+      }
+      return {
+        filename: att.filename || att.name || 'attachment',
+        content: att.content || (base64Data ? Buffer.from(base64Data, 'base64') : Buffer.from('')),
+        contentType: att.contentType || att.type || 'application/octet-stream',
+      };
+    });
   }
 
   const info = await transporter.sendMail(mailOptions);
@@ -74,12 +87,14 @@ const sendEmail = async (user, options, globalConfig = null) => {
 };
 
 const verifyTransporter = async (user, globalConfig = null) => {
-  const transporter = await createTransporter(user, globalConfig);
-  if (!transporter) {
+  const { source, config } = getActiveEmailConfig(user, globalConfig);
+  if (!config) {
     return { success: false, message: 'SMTP is not configured for this user and no global SMTP relay is available' };
   }
+  console.log(`[email] verifyTransporter using ${source} config: host=${config.smtpHost} user=${config.smtpUser}`);
 
   try {
+    const transporter = await createTransporter(user, globalConfig);
     await transporter.verify();
     return { success: true, message: 'SMTP connection verified successfully' };
   } catch (error) {
@@ -114,7 +129,7 @@ const getBrandingConfig = async () => {
 
 // Send an email without an authenticated user (e.g. public payment confirmations).
 // Uses the global SMTP relay; falls back to the provided fromAddress.
-const sendRawEmail = async ({ to, subject, text, html, fromAddress, fromName }) => {
+const sendRawEmail = async ({ to, subject, text, html, fromAddress, fromName, attachments }) => {
   const cfg = await getGlobalEmailConfig();
   if (!cfg || !cfg.smtpHost || !cfg.smtpUser || !cfg.smtpPass) {
     throw new Error('Global SMTP is not configured; cannot send system email.');
@@ -141,6 +156,24 @@ const sendRawEmail = async ({ to, subject, text, html, fromAddress, fromName }) 
     subject,
     text,
     html: html || text,
+    ...(attachments && attachments.length > 0 ? {
+      attachments: attachments.map(att => {
+        const base64Data = att.url ? att.url.replace(/^data:[^;]+;base64,/, '') : null;
+        if (att.cid) {
+          return {
+            filename: att.filename || 'image.png',
+            cid: att.cid,
+            content: att.content || (base64Data ? Buffer.from(base64Data, 'base64') : Buffer.from('')),
+            contentType: att.contentType || 'image/png',
+          };
+        }
+        return {
+          filename: att.filename || att.name || 'attachment',
+          content: att.content || (base64Data ? Buffer.from(base64Data, 'base64') : Buffer.from('')),
+          contentType: att.contentType || att.type || 'application/octet-stream',
+        };
+      })
+    } : {})
   });
 
   return info;

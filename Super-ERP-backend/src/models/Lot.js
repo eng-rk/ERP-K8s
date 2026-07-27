@@ -69,6 +69,7 @@ const lotSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+lotSchema.index({ lotNumber: 1 });
 lotSchema.index({ item: 1, warehouse: 1 });
 
 module.exports = mongoose.model('Lot', lotSchema);

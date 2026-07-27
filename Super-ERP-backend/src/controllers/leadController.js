@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Lead = require('../models/Lead');
 const User = require('../models/User');
 
@@ -233,8 +234,7 @@ exports.updateLead = async (req, res) => {
 
       const allowed = { 
         status: req.body.status, 
-        assignedTo: req.body.assignedTo === '' ? null : req.body.assignedTo, 
-        notes: req.body.notes 
+        assignedTo: req.body.assignedTo === '' ? null : req.body.assignedTo
       };
       Object.keys(allowed).forEach(k => allowed[k] === undefined && delete allowed[k]);
 
@@ -257,6 +257,88 @@ exports.updateLead = async (req, res) => {
     return res.status(403).json({ message: 'Not authorized' });
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Add a note to a lead (immutable audit trail)
+// @route   POST /api/leads/:id/notes
+// @access  Private (Admin, Manager, Agent on own leads)
+exports.addLeadNote = async (req, res) => {
+  try {
+    const { text } = req.body;
+    console.log('[addLeadNote] leadId=%s userId=%s text=%s', req.params.id, req.user?._id, typeof text === 'string' ? text.slice(0, 50) : text);
+    if (!text || !String(text).trim()) {
+      return res.status(400).json({ message: 'Note text is required' });
+    }
+
+    const objectId = new mongoose.Types.ObjectId(req.params.id);
+    const collection = Lead.collection;
+
+    const leadExists = await collection.findOne({ _id: objectId }, { projection: { _id: 1 } });
+    if (!leadExists) {
+      return res.status(404).json({ message: 'Lead not found' });
+    }
+
+    const userRole = req.user?.role;
+    const isAdmin = ADMIN_ROLES.includes(userRole);
+    const isManager = MANAGER_ROLES.includes(userRole);
+    const isAgent = userRole === 'Sales Agent';
+
+    if (!isAdmin && !isManager && !isAgent) {
+      return res.status(403).json({ message: 'Not authorized to add notes to this lead' });
+    }
+
+    if (isAgent) {
+      const lead = await Lead.findById(req.params.id).select('assignedTo');
+      if (lead?.assignedTo?.toString() !== req.user?._id?.toString()) {
+        return res.status(403).json({ message: 'Not authorized to add notes to this lead' });
+      }
+    }
+
+    const firstName = req.user?.firstName || 'User';
+    const lastName = req.user?.lastName || '';
+    const email = req.user?.email || '';
+    const noteText = String(text).trim();
+
+    const noteDoc = {
+      text: noteText,
+      createdAt: new Date(),
+      createdBy: {
+        name: `${firstName} ${lastName}`.trim(),
+        email,
+        role: userRole || 'User',
+      },
+    };
+
+    const candidate = await collection.findOne({ _id: objectId }, { projection: { notes: 1 } });
+    const normalizedNotes = Array.isArray(candidate?.notes)
+      ? candidate.notes
+      : (candidate?.notes && typeof candidate.notes === 'object' ? [candidate.notes] : []);
+
+    if (candidate && !Array.isArray(candidate.notes)) {
+      await collection.updateOne({ _id: objectId }, { $set: { notes: [] } });
+    }
+
+    const pushResult = await collection.updateOne(
+      { _id: objectId },
+      { $push: { notes: noteDoc } }
+    );
+
+    if (!pushResult.matchedCount) {
+      return res.status(404).json({ message: 'Lead not found' });
+    }
+
+    res.status(200).json({ success: true, message: 'Note added successfully', note: noteDoc });
+  } catch (error) {
+    console.error('[addLeadNote] Failed:', error?.message, 'leadId=', req.params.id, 'userId=', req.user?._id);
+    const payload = {
+      message: 'Server Error',
+      error: error?.message || 'Unknown error',
+    };
+    if (process.env.NODE_ENV !== 'production' && error?.stack) {
+      payload.stack = error.stack;
+    }
+    res.status(500).json(payload);
   }
 };
 

@@ -101,6 +101,7 @@ const receivingOrderSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+receivingOrderSchema.index({ receivingId: 1 });
 receivingOrderSchema.index({ poNumber: 1, status: 1 });
 receivingOrderSchema.index({ warehouse: 1, status: 1 });
 

@@ -100,6 +100,7 @@ const returnOrderSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+returnOrderSchema.index({ returnId: 1 });
 returnOrderSchema.index({ warehouse: 1, status: 1 });
 
 module.exports = mongoose.model('ReturnOrder', returnOrderSchema);

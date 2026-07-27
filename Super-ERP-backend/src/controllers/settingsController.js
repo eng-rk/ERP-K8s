@@ -195,6 +195,57 @@ exports.getErpConfig = async (req, res) => {
   }
 };
 
+exports.getTelephonyConfig = async (req, res) => {
+  try {
+    if (!['Super CRM Administrator', 'System Architect'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Access denied.' });
+    }
+    const setting = await SystemSetting.findOne({ key: 'telephony' });
+    const value = setting?.value || { provider: 'avaya' };
+    res.json({ success: true, data: {
+      provider: value.provider || 'avaya',
+      serverUrl: value.serverUrl || '',
+      username: value.username || '',
+      extension: value.extension || '',
+      password: value.password ? '********' : '',
+    } });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+exports.updateTelephonyConfig = async (req, res) => {
+  try {
+    if (!['Super CRM Administrator', 'System Architect'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Access denied.' });
+    }
+
+    const { provider, serverUrl, username, password, extension } = req.body || {};
+    if (!['avaya', 'cisco', 'sip'].includes(String(provider || '').toLowerCase())) {
+      return res.status(400).json({ message: 'Select a valid telephony provider.' });
+    }
+
+    const value = {
+      provider: String(provider).toLowerCase(),
+      serverUrl: String(serverUrl || '').trim(),
+      username: String(username || '').trim(),
+      extension: String(extension || '').trim(),
+    };
+    if (password) {
+      value.password = password;
+    }
+    await SystemSetting.findOneAndUpdate(
+      { key: 'telephony' },
+      { key: 'telephony', value, updatedBy: req.user._id },
+      { new: true, upsert: true }
+    );
+
+    res.json({ success: true, message: 'Telephony provider saved.', data: value });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
 // @desc    Save the ERP integration config
 // @route   PUT /api/settings/erp
 // @access  Private (Super Admin only)
@@ -248,6 +299,223 @@ exports.testEmailSettings = async (req, res) => {
     }
 
     res.json({ success: true, message: 'SMTP connection verified and test email sent.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Get minimum price settings + discount override flag
+// @route   GET /api/settings/pricing
+// @access  Private (Super Admin only)
+exports.getPricingSettings = async (req, res) => {
+  try {
+    if (!['Super CRM Administrator', 'System Architect'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Access denied.' });
+    }
+    const [minOffer, minProduct, discountOverride] = await Promise.all([
+      SystemSetting.findOne({ key: 'offerPriceMin' }),
+      SystemSetting.findOne({ key: 'productPriceMin' }),
+      SystemSetting.findOne({ key: 'discountOverride' }),
+    ]);
+    const offerPriceMin = minOffer?.value ?? 0;
+    const productPriceMin = minProduct?.value ?? 0;
+    const discountOverrideValue = discountOverride?.value ?? false;
+    res.json({
+      success: true,
+      data: {
+        offerPriceMin,
+        productPriceMin,
+        discountOverride: discountOverrideValue,
+        minOfferPrice: offerPriceMin,
+        minProductPrice: productPriceMin,
+        allowDiscountOverride: discountOverrideValue,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Save minimum price settings + discount override flag
+// @route   PUT /api/settings/pricing
+// @access  Private (Super Admin only)
+exports.updatePricingSettings = async (req, res) => {
+  try {
+    if (!['Super CRM Administrator', 'System Architect'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Access denied.' });
+    }
+
+    const {
+      offerPriceMin,
+      productPriceMin,
+      discountOverride,
+      minOfferPrice,
+      minProductPrice,
+      allowDiscountOverride,
+    } = req.body;
+    const resolvedOfferPriceMin = offerPriceMin ?? minOfferPrice ?? 0;
+    const resolvedProductPriceMin = productPriceMin ?? minProductPrice ?? 0;
+    const resolvedDiscountOverride = discountOverride ?? allowDiscountOverride ?? false;
+    const updates = [
+      { key: 'offerPriceMin', value: Number(resolvedOfferPriceMin) >= 0 ? Number(resolvedOfferPriceMin) : 0 },
+      { key: 'productPriceMin', value: Number(resolvedProductPriceMin) >= 0 ? Number(resolvedProductPriceMin) : 0 },
+      { key: 'discountOverride', value: !!resolvedDiscountOverride },
+    ];
+
+    await Promise.all(
+      updates.map((u) =>
+        SystemSetting.findOneAndUpdate({ key: u.key }, { key: u.key, value: u.value, updatedBy: req.user._id }, { new: true, upsert: true })
+      )
+    );
+
+    res.json({ success: true, message: 'Pricing settings saved.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Get currencies list + default currency
+// @route   GET /api/settings/currencies
+// @access  Private
+exports.getCurrencies = async (req, res) => {
+  try {
+    const setting = await SystemSetting.findOne({ key: 'currencies' });
+    const defaultSetting = await SystemSetting.findOne({ key: 'defaultCurrency' });
+    const currencies = Array.isArray(setting?.value)
+      ? setting.value
+          .filter((c) => c && c.code)
+          .map((c) => ({
+            code: String(c.code).trim().toUpperCase(),
+            name: String(c.name || c.code).trim(),
+            symbol: String(c.symbol || '').trim(),
+            rate: Number(c.rate) || 0,
+          }))
+      : [];
+    res.json({
+      success: true,
+      data: {
+        currencies,
+        defaultCurrency: defaultSetting?.value || 'USD',
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Save currencies list + default currency (Super Admin only)
+// @route   PUT /api/settings/currencies
+// @access  Private (Super Admin only)
+exports.updateCurrencies = async (req, res) => {
+  try {
+    if (!['Super CRM Administrator', 'System Architect'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Access denied.' });
+    }
+
+    const { currencies, defaultCurrency } = req.body;
+    const normalizedCurrencies = Array.isArray(currencies)
+      ? currencies
+          .filter((c) => c && c.code && c.name)
+          .map((c) => ({
+            code: String(c.code).trim().toUpperCase(),
+            name: String(c.name).trim(),
+            symbol: String(c.symbol || '').trim(),
+            rate: Number(c.rate) || 0,
+          }))
+      : [];
+    const uniqueCurrencies = [];
+    const seen = new Set();
+    normalizedCurrencies.forEach((currency) => {
+      if (!currency.code || seen.has(currency.code)) return;
+      seen.add(currency.code);
+      uniqueCurrencies.push(currency);
+    });
+
+    await Promise.all([
+      SystemSetting.findOneAndUpdate({ key: 'currencies' }, { key: 'currencies', value: uniqueCurrencies, updatedBy: req.user._id }, { new: true, upsert: true }),
+      SystemSetting.findOneAndUpdate({ key: 'defaultCurrency' }, { key: 'defaultCurrency', value: defaultCurrency || 'USD', updatedBy: req.user._id }, { new: true, upsert: true }),
+    ]);
+
+    res.json({ success: true, message: 'Currencies saved.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Apply discount to an offer
+// @route   POST /api/offers/:id/discount
+// @access  Private (Sales Manager or above, or offer creator if override allowed)
+exports.applyDiscount = async (req, res) => {
+  try {
+    const { discountType, discountValue } = req.body;
+    const offer = await Offer.findById(req.params.id).populate('createdBy', 'role');
+    if (!offer) return res.status(404).json({ message: 'Offer not found' });
+
+    const isAdmin = ['Super CRM Administrator', 'System Architect'].includes(req.user.role);
+    const isManager = req.user.role === 'Sales Manager';
+    const isCreator = offer.createdBy._id.toString() === req.user._id.toString();
+
+    if (!isAdmin && !isManager && !isCreator) {
+      return res.status(403).json({ message: 'Not authorized to discount this offer' });
+    }
+
+    const discountOverride = await SystemSetting.findOne({ key: 'discountOverride' });
+    const allowOverride = discountOverride?.value ?? false;
+
+    const minPriceSetting = await SystemSetting.findOne({ key: offer.offerType === 'Product' ? 'productPriceMin' : 'offerPriceMin' });
+    const minPrice = minPriceSetting?.value ?? 0;
+
+    const value = Number(discountValue);
+    if (!discountType || !['Percentage', 'Fixed'].includes(discountType) || Number.isNaN(value) || value < 0) {
+      return res.status(400).json({ message: 'Valid discount type and value are required' });
+    }
+
+    let finalPrice = offer.price;
+    if (discountType === 'Percentage') {
+      finalPrice = offer.price - (offer.price * (value / 100));
+    } else {
+      finalPrice = offer.price - value;
+    }
+
+    if (finalPrice < minPrice && !allowOverride) {
+      return res.status(400).json({
+        message: `Final price (${finalPrice.toFixed(2)}) is below minimum allowed (${minPrice.toFixed(2)}).`,
+        hint: 'Super admin must enable discount override to allow lower prices.',
+      });
+    }
+
+    offer.originalPrice = offer.price;
+    offer.finalPrice = Math.max(0, finalPrice);
+    offer.discountType = discountType;
+    offer.discountValue = value;
+    offer.discountAppliedBy = req.user._id;
+    offer.discountAppliedAt = new Date();
+    await offer.save();
+
+    const populated = await offer.populate('createdBy', 'firstName lastName role');
+    res.json({ success: true, data: populated });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Remove a currency by code
+// @route   DELETE /api/settings/currencies/:code
+// @access  Private (Super Admin only)
+exports.deleteCurrency = async (req, res) => {
+  try {
+    if (!['Super CRM Administrator', 'System Architect'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Access denied.' });
+    }
+    const setting = await SystemSetting.findOne({ key: 'currencies' });
+    const current = Array.isArray(setting?.value) ? setting.value : [];
+    const code = String(req.params.code || '').trim().toUpperCase();
+    const next = current.filter((c) => String(c.code || '').trim().toUpperCase() !== code);
+    if (next.length === current.length) {
+      return res.status(404).json({ message: 'Currency not found' });
+    }
+    await SystemSetting.findOneAndUpdate({ key: 'currencies' }, { key: 'currencies', value: next, updatedBy: req.user._id }, { new: true, upsert: true });
+    res.json({ success: true, message: 'Currency removed.' });
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }

@@ -12,6 +12,13 @@ const {
   uploadBrandingLogo,
   getErpConfig,
   updateErpConfig,
+  getTelephonyConfig,
+  updateTelephonyConfig,
+  getPricingSettings,
+  updatePricingSettings,
+  getCurrencies,
+  updateCurrencies,
+  deleteCurrency,
 } = require('../controllers/settingsController');
 const uploadBranding = require('../middleware/uploadBranding');
 
@@ -28,5 +35,14 @@ router.post('/branding/logo', protect, uploadBranding.single('logo'), uploadBran
 
 router.get('/erp', protect, getErpConfig);
 router.put('/erp', protect, updateErpConfig);
+router.get('/telephony', protect, getTelephonyConfig);
+router.put('/telephony', protect, updateTelephonyConfig);
+
+router.get('/pricing', protect, getPricingSettings);
+router.put('/pricing', protect, updatePricingSettings);
+
+router.get('/currencies', protect, getCurrencies);
+router.put('/currencies', protect, updateCurrencies);
+router.delete('/currencies/:code', protect, deleteCurrency);
 
 module.exports = router;

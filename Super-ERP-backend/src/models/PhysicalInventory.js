@@ -83,6 +83,7 @@ const physicalInventorySchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+physicalInventorySchema.index({ piId: 1 });
 physicalInventorySchema.index({ warehouse: 1, subinventory: 1, status: 1 });
 
 module.exports = mongoose.model('PhysicalInventory', physicalInventorySchema);

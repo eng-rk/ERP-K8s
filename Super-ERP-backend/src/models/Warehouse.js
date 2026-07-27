@@ -65,4 +65,6 @@ const warehouseSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+warehouseSchema.index({ code: 1 });
+
 module.exports = mongoose.model('Warehouse', warehouseSchema);
