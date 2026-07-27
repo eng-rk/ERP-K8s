@@ -267,7 +267,7 @@ const runStartupTasks = () => {
           const breachedItems = await StockLevel.aggregate([
             { $group: { _id: '$item', totalAvailable: { $sum: '$available' } } },
             { $lookup: { from: 'inventoryitems', localField: '_id', foreignField: '_id', as: 'itemData' } },
-            { $unwind: { path: '$itemData', preserveNullAndEmpty: false } },
+            { $unwind: { path: '$itemData' } },
             {
               $match: {
                 'itemData.reorderPoint': { $gt: 0 },

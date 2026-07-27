@@ -531,7 +531,7 @@ exports.getInventoryKPIs = async (req, res) => {
         {
           $lookup: { from: 'inventoryitems', localField: 'item', foreignField: '_id', as: 'itemData' }
         },
-        { $unwind: { path: '$itemData', preserveNullAndEmpty: false } },
+        { $unwind: { path: '$itemData' } },
         {
           $group: {
             _id: null,
@@ -598,7 +598,7 @@ exports.getInventoryKPIs = async (req, res) => {
     const reorderAlertsCount = await StockLevel.aggregate([
       { $group: { _id: '$item', totalAvailable: { $sum: '$available' } } },
       { $lookup: { from: 'inventoryitems', localField: '_id', foreignField: '_id', as: 'itemData' } },
-      { $unwind: { path: '$itemData', preserveNullAndEmpty: false } },
+      { $unwind: { path: '$itemData' } },
       { $match: { 'itemData.reorderPoint': { $gt: 0 }, $expr: { $lte: ['$totalAvailable', '$itemData.reorderPoint'] } } },
       { $count: 'count' }
     ]);
@@ -1157,8 +1157,8 @@ exports.getInventoryValuation = async (req, res) => {
     pipeline.push({ $match: matchStage });
     pipeline.push({ $lookup: itemLookup });
     pipeline.push({ $lookup: warehouseLookup });
-    pipeline.push({ $unwind: { path: '$itemData', preserveNullAndEmpty: false } });
-    pipeline.push({ $unwind: { path: '$warehouseData', preserveNullAndEmpty: false } });
+    pipeline.push({ $unwind: { path: '$itemData' } });
+    pipeline.push({ $unwind: { path: '$warehouseData' } });
 
     pipeline.push({
       $project: {
@@ -1242,7 +1242,7 @@ exports.getABCClassification = async (req, res) => {
       {
         $lookup: { from: 'inventoryitems', localField: '_id', foreignField: '_id', as: 'itemData' }
       },
-      { $unwind: { path: '$itemData', preserveNullAndEmpty: false } },
+      { $unwind: { path: '$itemData' } },
       {
         $project: {
           sku: '$itemData.sku',
@@ -1290,8 +1290,8 @@ exports.getDeadStockReport = async (req, res) => {
       { $match: { onHand: { $gt: 0 }, item: { $nin: activeItemIds } } },
       { $lookup: { from: 'inventoryitems', localField: 'item', foreignField: '_id', as: 'itemData' } },
       { $lookup: { from: 'warehouses', localField: 'warehouse', foreignField: '_id', as: 'warehouseData' } },
-      { $unwind: { path: '$itemData', preserveNullAndEmpty: false } },
-      { $unwind: { path: '$warehouseData', preserveNullAndEmpty: false } },
+      { $unwind: { path: '$itemData' } },
+      { $unwind: { path: '$warehouseData' } },
       {
         $group: {
           _id: '$item',
@@ -1338,7 +1338,7 @@ exports.getReorderAlerts = async (req, res) => {
         }
       },
       { $lookup: { from: 'inventoryitems', localField: '_id', foreignField: '_id', as: 'itemData' } },
-      { $unwind: { path: '$itemData', preserveNullAndEmpty: false } },
+      { $unwind: { path: '$itemData' } },
       {
         $match: {
           'itemData.reorderPoint': { $gt: 0 },
