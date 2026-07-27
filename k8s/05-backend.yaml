@@ -19,6 +19,7 @@ metadata:
     app: backend
 spec:
   replicas: 2
+  revisionHistoryLimit: 3
   selector:
     matchLabels:
       app: backend
@@ -29,7 +30,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: rowank/super-erp-backend:v4
+          image: rowank/super-erp-backend:v1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5000

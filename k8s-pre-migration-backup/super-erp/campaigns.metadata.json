@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"formSlug":{"$numberInt":"1"}},"name":"formSlug_1","unique":true,"sparse":true}],"uuid":"fbef0c2c96734740bfec367b7c12be6f","collectionName":"campaigns","type":"collection"}

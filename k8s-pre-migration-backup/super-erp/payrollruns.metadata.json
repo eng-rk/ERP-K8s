@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"period":{"$numberInt":"1"},"type":{"$numberInt":"1"}},"name":"period_1_type_1","unique":true,"partialFilterExpression":{"type":"Salary"}}],"uuid":"10fd0429b79741c595f7fe9c46dc0368","collectionName":"payrollruns","type":"collection"}
