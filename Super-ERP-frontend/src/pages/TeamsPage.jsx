@@ -1,6 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import API from '../services/api';
+import { Icon } from '../utils/iconMapper';
+
+const deptEmojiMap = {
+  '💼': 'Briefcase',
+  '🎧': 'Headphones',
+  '📣': 'Megaphone',
+  '⚙️': 'Settings',
+  '⚙': 'Settings',
+  '👤': 'User',
+  '💵': 'DollarSign',
+  '📚': 'GraduationCap',
+  '🎯': 'Target',
+  '🤝': 'Users',
+};
 
 const DEPT_COLORS = {
   'Sales': { c1: '#2563EB', c2: '#14B8A6', badge: 'badge-new', icon: '💼' },
@@ -183,16 +197,21 @@ const TeamsPage = () => {
 
       {/* Department tabs */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid var(--border-color)', paddingBottom: 0 }}>
-        {departments.map(dept => (
-          <button key={dept} onClick={() => setActiveTab(dept)} style={{
-            padding: '10px 20px', background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 13, fontWeight: 600, color: activeTab === dept ? 'var(--accent-primary)' : 'var(--text-muted)',
-            borderBottom: activeTab === dept ? '2px solid var(--accent-primary)' : '2px solid transparent',
-            marginBottom: -1, transition: 'all 0.15s',
-          }}>
-            {DEPT_COLORS[dept]?.icon || ''} {dept}
-          </button>
-        ))}
+        {departments.map(dept => {
+          const icon = DEPT_COLORS[dept]?.icon;
+          return (
+            <button key={dept} onClick={() => setActiveTab(dept)} style={{
+              padding: '10px 20px', background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 13, fontWeight: 600, color: activeTab === dept ? 'var(--accent-primary)' : 'var(--text-muted)',
+              borderBottom: activeTab === dept ? '2px solid var(--accent-primary)' : '2px solid transparent',
+              marginBottom: -1, transition: 'all 0.15s',
+              display: 'flex', alignItems: 'center', gap: 6
+            }}>
+              {icon && deptEmojiMap[icon] && <Icon name={deptEmojiMap[icon]} size={14} className="icon-inline" />}
+              <span>{dept}</span>
+            </button>
+          );
+        })}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -217,7 +236,7 @@ const TeamsPage = () => {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 28
                 }}>
-                  {colors.icon}
+                  {deptEmojiMap[colors.icon] ? <Icon name={deptEmojiMap[colors.icon]} size={28} className="text-current" /> : colors.icon}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>{department}</div>
@@ -277,7 +296,9 @@ const TeamsPage = () => {
         {filteredUnassigned.length > 0 && (
           <div className="table-wrapper" style={{ padding: 0, overflow: 'hidden', border: '2px dashed rgba(239,68,68,0.3)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '20px 24px', borderBottom: '1px solid var(--border-color)', background: 'rgba(239,68,68,0.05)' }}>
-              <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(239,68,68,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>⚠️</div>
+              <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(239,68,68,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="AlertTriangle" size={24} style={{ color: '#EF4444' }} />
+              </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 700, fontSize: 16 }}>Unassigned Members</div>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>These members need to be assigned to a team</div>

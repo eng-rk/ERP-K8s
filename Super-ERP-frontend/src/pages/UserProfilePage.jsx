@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import API from '../services/api';
+import { Icon } from '../utils/iconMapper';
 
 const roleBadge = (role) => {
   const map = {
@@ -284,7 +285,7 @@ const UserProfilePage = () => {
                 {/* Sender email info banner */}
                 {user?.smtpUser && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'rgba(var(--accent-rgb, 99,102,241),0.08)', borderRadius: 8, marginBottom: 14, fontSize: 13 }}>
-                    <span style={{ fontSize: 16 }}>📤</span>
+                    <Icon name="Send" size={16} className="text-current" />
                     <span>Offers will be sent <strong>from</strong>: <strong style={{ color: 'var(--accent-primary)' }}>{user.smtpUser}</strong></span>
                   </div>
                 )}
@@ -387,9 +388,17 @@ const UserProfilePage = () => {
                   {smtpTestResult && (
                     <span style={{
                       fontSize: 13, fontWeight: 600,
-                      color: smtpTestResult.success ? 'var(--status-won, #22c55e)' : 'var(--status-lost, #ef4444)'
+                      color: smtpTestResult.success ? 'var(--status-won, #22c55e)' : 'var(--status-lost, #ef4444)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6
                     }}>
-                      {smtpTestResult.success ? '✅' : '❌'} {smtpTestResult.message}
+                      {smtpTestResult.success ? (
+                        <Icon name="CheckCircle" size={14} className="icon-inline" style={{ color: 'var(--status-won, #22c55e)' }} />
+                      ) : (
+                        <Icon name="AlertTriangle" size={14} className="icon-inline" style={{ color: 'var(--status-lost, #ef4444)' }} />
+                      )}
+                      <span>{smtpTestResult.message}</span>
                     </span>
                   )}
                 </div>

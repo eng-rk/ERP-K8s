@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import API from '../services/api';
 import { Icon } from '../components/Icons';
+import { Icon as LucideIcon } from '../utils/iconMapper';
 
 const AnalyticsPage = () => {
   const [stats, setStats] = useState(null);
@@ -52,8 +53,9 @@ const AnalyticsPage = () => {
           {/* Lead Analytics Section */}
           <div className="crm-glass-card" style={{ padding: 24 }}>
             <div style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span>🎯</span> Lead Acquisition &amp; Conversion
+              <LucideIcon name="Target" size={14} className="icon-inline" /><span>Lead Acquisition &amp; Conversion</span>
             </div>
+
             <div className="stat-grid" style={{ marginBottom: 0 }}>
               <div className="crm-stat-widget">
                 <div className="crm-stat-header">
@@ -112,7 +114,7 @@ const AnalyticsPage = () => {
           {/* Support Analytics Section */}
           <div className="crm-glass-card" style={{ padding: 24 }}>
             <div style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span>🎫</span> Support &amp; Engineering Operations
+              <LucideIcon name="Ticket" size={14} className="icon-inline" /><span>Support &amp; Engineering Operations</span>
             </div>
             <div className="stat-grid" style={{ marginBottom: 0 }}>
               <div className="crm-stat-widget">
@@ -146,7 +148,7 @@ const AnalyticsPage = () => {
           {/* Campaign Analytics Section */}
           <div className="crm-glass-card" style={{ padding: 24 }}>
             <div style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span>📢</span> Marketing Campaign Channels
+              <LucideIcon name="Megaphone" size={14} className="icon-inline" /><span>Marketing Campaign Channels</span>
             </div>
             <div className="stat-grid" style={{ marginBottom: 0 }}>
               <div className="crm-stat-widget">

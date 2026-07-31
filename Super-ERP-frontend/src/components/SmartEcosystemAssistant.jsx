@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import API from '../services/api';
+import { Icon } from '../utils/iconMapper';
 
 const CONTEXT_INSIGHTS = {
   '/dashboard': [
@@ -38,6 +39,27 @@ const QUICK_ACTIONS = [
   { label: 'View Employee Payroll', path: '/hrm/payroll', icon: '💰', category: 'HRM' },
   { label: 'Report Tech Issue', path: '/tickets', icon: '🎫', category: 'Support' },
 ];
+
+const emojiToIconName = {
+  '📈': 'TrendingUp',
+  '⚡': 'Zap',
+  '✅': 'CheckCircle',
+  '🎯': 'Target',
+  '🔄': 'RefreshCw',
+  '📦': 'Package',
+  '📋': 'ClipboardList',
+  '💰': 'DollarSign',
+  '⚠️': 'AlertTriangle',
+  '⚠': 'AlertTriangle',
+  '📊': 'BarChart3',
+  '🏆': 'Trophy',
+  '🤖': 'Bot',
+  '💡': 'Lightbulb',
+  '👤': 'User',
+  '✉️': 'Mail',
+  '✉': 'Mail',
+  '🎫': 'Ticket'
+};
 
 const SmartEcosystemAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -168,7 +190,7 @@ const SmartEcosystemAssistant = () => {
         onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
         onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
       >
-        <span style={{ fontSize: 18 }}>🤖</span>
+        <Icon name="Bot" size={16} className="icon-inline" />
         <span>AI Assistant</span>
         <span
           style={{
@@ -233,10 +255,9 @@ const SmartEcosystemAssistant = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: 20,
                   }}
                 >
-                  🤖
+                  <Icon name="Bot" size={24} />
                 </div>
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 700 }}>Ecosystem AI Co-Pilot</div>
@@ -255,8 +276,8 @@ const SmartEcosystemAssistant = () => {
 
             {/* Context Insights */}
             <div style={{ padding: '16px 20px', background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#64748B', marginBottom: 10 }}>
-                💡 Page Insights & Recommendations
+              <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#64748B', marginBottom: 10, display: 'flex', alignItems: 'center' }}>
+                <Icon name="Lightbulb" size={14} className="icon-inline" /><span>Page Insights & Recommendations</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {activeInsights.map((insight, idx) => (
@@ -272,7 +293,7 @@ const SmartEcosystemAssistant = () => {
                       gap: 10,
                     }}
                   >
-                    <span style={{ fontSize: 16 }}>{insight.icon}</span>
+                    <Icon name={emojiToIconName[insight.icon] || 'Lightbulb'} size={16} className="text-current" />
                     <div>
                       <div style={{ fontSize: 12, fontWeight: 700, color: '#1E293B' }}>{insight.title}</div>
                       <div style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>{insight.desc}</div>
@@ -284,8 +305,8 @@ const SmartEcosystemAssistant = () => {
 
             {/* Quick Actions Shortcuts */}
             <div style={{ padding: '12px 20px', borderBottom: '1px solid #E2E8F0' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#64748B', marginBottom: 8 }}>
-                ⚡ Quick Ecosystem Actions
+              <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#64748B', marginBottom: 8, display: 'flex', alignItems: 'center' }}>
+                <Icon name="Zap" size={14} className="icon-inline" /><span>Quick Ecosystem Actions</span>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {QUICK_ACTIONS.map((action, idx) => (
@@ -320,12 +341,13 @@ const SmartEcosystemAssistant = () => {
                       e.currentTarget.style.color = '#334155';
                     }}
                   >
-                    <span>{action.icon}</span>
+                    <Icon name={emojiToIconName[action.icon] || 'Zap'} size={14} className="icon-inline" />
                     <span>{action.label}</span>
                   </button>
                 ))}
               </div>
             </div>
+
 
             {/* Messages Area */}
             <div style={{ flex: 1, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import API, { API_HOST } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { DEPARTMENTS } from '../../services/departmentJobs';
+import { Icon } from '../../utils/iconMapper';
 
 // Color map for UI status tags
 const STATUS_COLORS = {
@@ -804,10 +805,10 @@ const PersonalPage = () => {
       {/* HRM Top Sub-Tabs Navigation */}
       <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--border-color)', paddingBottom: 0, overflowX: 'auto' }}>
         {[
-          { id: 'profile', label: '👤 Profile & Schedule' },
-          { id: 'contract', label: '📄 Contract Terms' },
-          { id: 'docs', label: '🇪🇬 Gov Documents' },
-          { id: 'leaves', label: '🌴 Leave & Absence' }
+          { id: 'profile', label: 'Profile & Schedule', icon: 'User' },
+          { id: 'contract', label: 'Contract Terms', icon: 'FileText' },
+          { id: 'docs', label: 'Gov Documents', icon: 'FileText' },
+          { id: 'leaves', label: 'Leave & Absence', icon: 'CalendarOff' }
         ].map(tab => (
           <button
             key={tab.id}
@@ -823,10 +824,14 @@ const PersonalPage = () => {
               cursor: 'pointer',
               whiteSpace: 'nowrap',
               marginBottom: -1,
-              transition: 'all 0.2s'
+              transition: 'all 0.2s',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6
             }}
           >
-            {tab.label}
+            <Icon name={tab.icon} size={14} className="icon-inline" />
+            <span>{tab.label}</span>
           </button>
         ))}
       </div>
@@ -877,7 +882,10 @@ const PersonalPage = () => {
                 >
                   <div style={{ fontWeight: '600', fontSize: 13 }}>{emp.firstName} {emp.lastName}</div>
                   <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{emp.role}</div>
-                  <div style={{ fontSize: 10, color: 'var(--accent-primary)', marginTop: 4 }}>🕒 {emp.shift}</div>
+                  <div style={{ fontSize: 10, color: 'var(--accent-primary)', display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                    <Icon name="Clock" size={10} className="icon-inline" />
+                    <span>{emp.shift}</span>
+                  </div>
                 </div>
               ))}
               {filteredEmployees.length === 0 && (
@@ -928,7 +936,10 @@ const PersonalPage = () => {
                   {/* Dynamic Month Calendar with Planned AUXes */}
                   {detailedSchedule && (
                     <div className="card">
-                      <h3 style={{ margin: '0 0 12px 0', fontSize: 15 }}>🗓️ Month Schedule & Planned AUX Overview</h3>
+                      <h3 style={{ margin: '0 0 12px 0', fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Icon name="Calendar" size={16} className="icon-inline" />
+                        <span>Month Schedule & Planned AUX Overview</span>
+                      </h3>
                       <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>
                         Visual representation of the 4 weeks of the month. Includes daily working shifts, off-days, and planned AUX target durations.
                       </p>
@@ -1051,10 +1062,10 @@ const PersonalPage = () => {
 
                                       {!day.isOff && (
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 4, marginTop: 4 }}>
-                                          <div style={{ fontSize: 9, color: '#6ee7b7' }}>📞 {day.targets.live}m</div>
-                                          <div style={{ fontSize: 9, color: '#fcd34d' }}>☕ {day.targets.break}m</div>
-                                          <div style={{ fontSize: 9, color: '#a5b4fc' }}>🎓 {day.targets.train}m</div>
-                                          <div style={{ fontSize: 9, color: '#c084fc' }}>👥 {day.targets.coach}m</div>
+                                          <div style={{ fontSize: 9, color: '#6ee7b7', display: 'inline-flex', alignItems: 'center', gap: 2 }}><Icon name="Phone" size={8} className="icon-inline" />{day.targets.live}m</div>
+                                          <div style={{ fontSize: 9, color: '#fcd34d', display: 'inline-flex', alignItems: 'center', gap: 2 }}><Icon name="Coffee" size={8} className="icon-inline" />{day.targets.break}m</div>
+                                          <div style={{ fontSize: 9, color: '#a5b4fc', display: 'inline-flex', alignItems: 'center', gap: 2 }}><Icon name="GraduationCap" size={8} className="icon-inline" />{day.targets.train}m</div>
+                                          <div style={{ fontSize: 9, color: '#c084fc', display: 'inline-flex', alignItems: 'center', gap: 2 }}><Icon name="Users" size={8} className="icon-inline" />{day.targets.coach}m</div>
                                         </div>
                                       )}
                                     </div>
@@ -1078,7 +1089,10 @@ const PersonalPage = () => {
                       <div className="card" style={{ width: '100%', maxWidth: 700, maxHeight: '90vh', overflowY: 'auto', border: '1px solid var(--accent-secondary)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: 12, marginBottom: 16 }}>
                           <div>
-                            <h3 style={{ margin: 0, fontSize: 16 }}>🕒 Day Details & Staggered AUX Planner</h3>
+                            <h3 style={{ margin: 0, fontSize: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <Icon name="Clock" size={16} className="icon-inline" />
+                              <span>Day Details & Staggered AUX Planner</span>
+                            </h3>
                             <p style={{ margin: '2px 0 0 0', fontSize: 12, color: 'var(--text-muted)' }}>Date: {activeExpandedDay.dateStr} ({activeExpandedDay.dayName})</p>
                           </div>
                           <button 
@@ -1138,10 +1152,10 @@ const PersonalPage = () => {
                                         defaultValue={defaultVal}
                                         style={{ width: 'auto', padding: '4px 8px', fontSize: 11, height: 'auto', margin: 0 }}
                                       >
-                                        <option value="Live (Online)">🟢 Live (Online)</option>
-                                        <option value="Break / Rest">☕ Break / Rest</option>
-                                        <option value="Coaching / Training">🎓 Training / Coaching</option>
-                                        <option value="Offline / Logged out">⚫ Offline / Logged out</option>
+                                        <option value="Live (Online)">Live (Online)</option>
+                                        <option value="Break / Rest">Break / Rest</option>
+                                        <option value="Coaching / Training">Training / Coaching</option>
+                                        <option value="Offline / Logged out">Offline / Logged out</option>
                                       </select>
                                     </div>
                                   );
@@ -1181,9 +1195,10 @@ const PersonalPage = () => {
                             className="btn btn-secondary btn-sm" 
                             onClick={handleCopyToNextMonth}
                             disabled={copyingSchedule || !detailedSchedule}
-                            style={{ fontSize: 11 }}
+                            style={{ fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}
                           >
-                            {copyingSchedule ? 'Copying...' : '📋 Copy to Next Month'}
+                            <Icon name="Copy" size={11} className="icon-inline" />
+                            <span>{copyingSchedule ? 'Copying...' : 'Copy to Next Month'}</span>
                           </button>
                         </div>
                       </div>
@@ -1210,19 +1225,19 @@ const PersonalPage = () => {
 
                           <div style={{ gridColumn: 'span 2', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 16 }}>
                             <div className="form-group" style={{ margin: 0 }}>
-                              <label className="form-label">📞 Live (mins)</label>
+                              <label className="form-label">Live (mins)</label>
                               <input type="number" className="form-input" value={defaultLiveTarget} onChange={(e) => setDefaultLiveTarget(e.target.value)} />
                             </div>
                             <div className="form-group" style={{ margin: 0 }}>
-                              <label className="form-label">☕ Break (mins)</label>
+                              <label className="form-label">Break (mins)</label>
                               <input type="number" className="form-input" value={defaultBreakTarget} onChange={(e) => setDefaultBreakTarget(e.target.value)} />
                             </div>
                             <div className="form-group" style={{ margin: 0 }}>
-                              <label className="form-label">🎓 Training (mins)</label>
+                              <label className="form-label">Training (mins)</label>
                               <input type="number" className="form-input" value={defaultTrainingTarget} onChange={(e) => setDefaultTrainingTarget(e.target.value)} />
                             </div>
                             <div className="form-group" style={{ margin: 0 }}>
-                              <label className="form-label">👥 Coaching (mins)</label>
+                              <label className="form-label">Coaching (mins)</label>
                               <input type="number" className="form-input" value={defaultCoachingTarget} onChange={(e) => setDefaultCoachingTarget(e.target.value)} />
                             </div>
                           </div>
@@ -1553,7 +1568,10 @@ const PersonalPage = () => {
                   {/* Salary History */}
                   {contract?.salaryHistory?.length > 0 && (
                     <div className="card">
-                      <h3 style={{ margin: '0 0 12px', fontSize: 15 }}>📈 Salary History</h3>
+                      <h3 style={{ margin: '0 0 12px', fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Icon name="TrendingUp" size={14} className="icon-inline" />
+                        <span>Salary History</span>
+                      </h3>
                       <div className="table-wrapper">
                         <table>
                           <thead><tr><th>Date</th><th>Net Salary</th><th>Changed By</th><th>Reason</th></tr></thead>
@@ -1617,12 +1635,16 @@ const PersonalPage = () => {
                                         href={docUrl.startsWith('http') ? docUrl : `${API_HOST}${docUrl}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        style={{ color: 'var(--accent-secondary)', textDecoration: 'underline' }}
+                                        style={{ color: 'var(--accent-secondary)', textDecoration: 'underline', display: 'inline-flex', alignItems: 'center', gap: 4 }}
                                       >
-                                        📎 View / Download File
+                                        <Icon name="Paperclip" size={12} className="icon-inline" />
+                                        <span>View / Download File</span>
                                       </a>
                                     ) : (
-                                      <span style={{ color: 'var(--accent-secondary)' }}>📄 {docUrl}</span>
+                                      <span style={{ color: 'var(--accent-secondary)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                        <Icon name="FileText" size={12} className="icon-inline" />
+                                        <span>{docUrl}</span>
+                                      </span>
                                     )}
                                   </div>
                                 )}
@@ -1641,8 +1663,9 @@ const PersonalPage = () => {
                             </div>
 
                             {docDetails.remarks && (
-                              <div style={{ fontSize: 12, color: 'var(--text-muted)', background: 'rgba(0,0,0,0.15)', padding: '6px 10px', borderRadius: 4 }}>
-                                💬 Remarks: {docDetails.remarks}
+                              <div style={{ fontSize: 12, color: 'var(--text-muted)', background: 'rgba(0,0,0,0.15)', padding: '6px 10px', borderRadius: 4, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                <Icon name="MessageSquare" size={12} className="icon-inline" />
+                                <span>Remarks: {docDetails.remarks}</span>
                               </div>
                             )}
 
@@ -1657,10 +1680,12 @@ const PersonalPage = () => {
                                       padding: '5px 12px', borderRadius: 6, fontSize: 12,
                                       background: 'rgba(99,102,241,0.12)', color: '#a5b4fc',
                                       border: '1px dashed rgba(99,102,241,0.4)',
-                                      cursor: 'pointer', fontWeight: 600
+                                      cursor: 'pointer', fontWeight: 600,
+                                      display: 'inline-flex', alignItems: 'center', gap: 6
                                     }}
                                   >
-                                    {uploadingDoc === doc.key ? '⏳ Uploading...' : '📤 Upload Soft Copy'}
+                                    <Icon name="Upload" size={12} className="icon-inline" />
+                                    <span>{uploadingDoc === doc.key ? 'Uploading...' : 'Upload Soft Copy'}</span>
                                   </label>
                                   <input
                                     id={`file-${doc.key}`}
@@ -1713,9 +1738,10 @@ const PersonalPage = () => {
                                       handleVerifyDoc(doc.key, 'Approved', remarksVal);
                                     }}
                                     className="btn btn-primary btn-sm"
-                                    style={{ padding: '4px 10px', fontSize: 11 }}
+                                    style={{ padding: '4px 10px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}
                                   >
-                                    ✓ Approve
+                                    <Icon name="Check" size={11} className="icon-inline" />
+                                    <span>Approve</span>
                                   </button>
                                   <button
                                     type="button"
@@ -1724,9 +1750,10 @@ const PersonalPage = () => {
                                       handleVerifyDoc(doc.key, 'Rejected', remarksVal);
                                     }}
                                     className="btn btn-secondary btn-sm"
-                                    style={{ padding: '4px 10px', fontSize: 11 }}
+                                    style={{ padding: '4px 10px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}
                                   >
-                                    ✗ Reject
+                                    <Icon name="X" size={11} className="icon-inline" />
+                                    <span>Reject</span>
                                   </button>
                                 </div>
                               )}
@@ -1884,7 +1911,10 @@ const PersonalPage = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   {/* 1. Personal Employee Assistant */}
                   <div className="card">
-                    <h3 style={{ margin: '0 0 4px 0', fontSize: 15 }}>🤖 Personal AI Agent (Employee Assistant)</h3>
+                    <h3 style={{ margin: '0 0 4px 0', fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Icon name="Bot" size={16} className="icon-inline" />
+                      <span>Personal AI Agent (Employee Assistant)</span>
+                    </h3>
                     <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
                       Ask questions about your leaves, schedules, active contracts, assets, or document expirations.
                     </p>
@@ -1934,7 +1964,10 @@ const PersonalPage = () => {
                   {/* 2. HR Manager Copilot */}
                   {isHR && (
                     <div className="card">
-                      <h3 style={{ margin: '0 0 4px 0', fontSize: 15 }}>💼 AI HR Manager Agent (Supervisor Copilot)</h3>
+                      <h3 style={{ margin: '0 0 4px 0', fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Icon name="Briefcase" size={16} className="icon-inline" />
+                        <span>AI HR Manager Agent (Supervisor Copilot)</span>
+                      </h3>
                       <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
                         Get supervisor analysis of team attendance, lateness trends, compliance metrics, and burnout flags.
                       </p>

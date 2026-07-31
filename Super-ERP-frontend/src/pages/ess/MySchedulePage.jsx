@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import API from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useAux } from '../../context/AuxContext';
+import { Icon } from '../../utils/iconMapper';
 
 const fmtMins = (mins) => {
   if (!mins) return '0m';
@@ -88,7 +89,8 @@ const MySchedulePage = () => {
             color: STATUS_COLORS[currentAux], background: `${STATUS_COLORS[currentAux]}15`,
             border: `1px solid ${STATUS_COLORS[currentAux]}40`,
           }}>
-            {STATUS_ICONS[currentAux]} {currentAux}
+            <Icon name="Circle" size={10} style={{ fill: STATUS_COLORS[currentAux], color: STATUS_COLORS[currentAux] }} className="icon-inline" />
+            <span>{currentAux}</span>
           </span>
           {currentAux !== 'Logged out' && (
             <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
@@ -96,9 +98,9 @@ const MySchedulePage = () => {
             </span>
           )}
         </div>
-        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-          🕐 {profile?.shift || 'N/A'}
-          {weeklyOffDays.length > 0 && ` · Off: ${weeklyOffDays.join(', ')}`}
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <Icon name="Clock" size={12} className="icon-inline" />
+          <span>{profile?.shift || 'N/A'}{weeklyOffDays.length > 0 && ` · Off: ${weeklyOffDays.join(', ')}`}</span>
         </div>
       </div>
 

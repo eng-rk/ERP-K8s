@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import API from '../services/api';
 import logo from '../assets/logo.png';
+import { Icon } from '../utils/iconMapper';
 
 const CampaignFormPage = () => {
   const { slug } = useParams();
@@ -69,17 +70,22 @@ const CampaignFormPage = () => {
           </div>
         ) : error ? (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🚫</div>
+            <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center' }}>
+              <Icon name="Ban" size={40} className="text-current" />
+            </div>
             <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: '#1F2937' }}>Form Unavailable</h2>
             <p style={{ color: '#6B7280', fontSize: 14 }}>{error}</p>
           </div>
         ) : submitted ? (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
+            <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center' }}>
+              <Icon name="CheckCircle" size={48} className="text-current" />
+            </div>
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8, color: '#1F2937' }}>Thank You!</h2>
             <p style={{ color: '#6B7280', fontSize: 14 }}>Your information has been received. We'll be in touch shortly.</p>
           </div>
         ) : (
+
           <>
             <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6, color: '#1F2937' }}>{campaign?.name}</h1>
             <p style={{ color: '#6B7280', fontSize: 14, marginBottom: 28 }}>

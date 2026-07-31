@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import API from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { AUX_COLORS } from '../../context/AuxContext';
+import { Icon } from '../../utils/iconMapper';
 
 const fmt = (mins) => {
   if (mins === null || mins === undefined) return '—';
@@ -167,15 +168,19 @@ const AuxSchedulePage = () => {
       {/* Tab bar */}
       <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border-color)' }}>
         {[
-          { id: 'report', label: '📊 Compliance Report' },
-          ...(isHR ? [{ id: 'schedule', label: '📅 Schedule Editor' }] : []),
+          { id: 'report', label: 'Compliance Report', icon: 'BarChart3' },
+          ...(isHR ? [{ id: 'schedule', label: 'Schedule Editor', icon: 'Calendar' }] : []),
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
             padding: '10px 20px', border: 'none', background: 'transparent', cursor: 'pointer',
             borderBottom: tab === t.id ? '2px solid var(--accent-secondary)' : '2px solid transparent',
             color: tab === t.id ? 'var(--accent-secondary)' : 'var(--text-muted)',
             fontWeight: tab === t.id ? 700 : 400, fontSize: 13, marginBottom: -1,
-          }}>{t.label}</button>
+            display: 'inline-flex', alignItems: 'center', gap: 6
+          }}>
+            <Icon name={t.icon} size={14} className="icon-inline" />
+            <span>{t.label}</span>
+          </button>
         ))}
       </div>
 
@@ -232,8 +237,9 @@ const AuxSchedulePage = () => {
                   )}
 
                   {!entry.planned?.liveMinutes && (
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                      ⚠ No schedule set for this employee in {month}. Set one in the Schedule Editor.
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Icon name="AlertTriangle" size={13} className="icon-inline" />
+                      <span>No schedule set for this employee in {month}. Set one in the Schedule Editor.</span>
                     </div>
                   )}
                 </div>
@@ -260,7 +266,12 @@ const AuxSchedulePage = () => {
                   }}>
                     <div style={{ fontWeight: 600, fontSize: 13 }}>{emp.firstName} {emp.lastName}</div>
                     <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{emp.role}</div>
-                    {hasSched && <div style={{ fontSize: 10, color: '#10B981', marginTop: 2 }}>✓ Schedule set</div>}
+                    {hasSched && (
+                      <div style={{ fontSize: 10, color: '#10B981', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Icon name="Check" size={10} className="icon-inline" />
+                        <span>Schedule set</span>
+                      </div>
+                    )}
                   </div>
                 );
               })}

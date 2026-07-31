@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import API from '../services/api';
+import { Icon } from '../utils/iconMapper';
 
 const OfferHistoryModal = ({ offerId, onClose, onViewVersions }) => {
   const [history, setHistory] = useState([]);
@@ -21,23 +22,24 @@ const OfferHistoryModal = ({ offerId, onClose, onViewVersions }) => {
 
   const getActionIcon = (action) => {
     const icons = {
-      created: '➕',
-      sent: '📤',
-      viewed: '👁️',
-      accepted: '✅',
-      rejected: '❌',
-      expired: '⏰',
-      completed: '🎉',
-      canceled: '🚫',
-      refunded: '💸',
-      updated: '✏️',
-      resend: '🔄',
-      revised: '🔁',
-      version_sent: '📨',
-      image_added: '🖼️',
-      image_removed: '🗑️'
+      created: 'Plus',
+      sent: 'Send',
+      viewed: 'Eye',
+      accepted: 'CheckCircle',
+      rejected: 'XCircle',
+      expired: 'Clock3',
+      completed: 'Sparkles',
+      canceled: 'Ban',
+      refunded: 'DollarSign',
+      updated: 'Pencil',
+      resend: 'RefreshCw',
+      revised: 'Repeat',
+      version_sent: 'MailOpen',
+      image_added: 'Image',
+      image_removed: 'Trash2'
     };
-    return icons[action] || '📋';
+    const iconName = icons[action] || 'ClipboardList';
+    return <Icon name={iconName} size={20} className="text-current inline" />;
   };
 
   const renderChanges = (changes) => {
@@ -84,12 +86,12 @@ const OfferHistoryModal = ({ offerId, onClose, onViewVersions }) => {
             {onViewVersions && (
               <button
                 onClick={onViewVersions}
-                style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '4px 10px', fontSize: 12, cursor: 'pointer', color: 'var(--accent-primary)' }}
+                style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '4px 10px', fontSize: 12, cursor: 'pointer', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: 4 }}
               >
-                🗂️ Sent Versions
+                <Icon name="FolderOpen" size={16} className="icon-inline" /><span>Sent Versions</span>
               </button>
             )}
-            <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--text-muted)' }}>×</button>
+            <button onClick={onClose} aria-label="Close dialog" style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--text-muted)' }}>×</button>
           </div>
         </div>
         {loading ? (

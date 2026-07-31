@@ -1,6 +1,18 @@
 import { useState, useEffect, useMemo } from 'react';
 import API from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { Icon } from '../../utils/iconMapper';
+
+const categoryIconMap = {
+  All: 'FolderOpen',
+  Health: 'Activity',
+  Financial: 'DollarSign',
+  Lifestyle: 'Palmtree',
+  Education: 'GraduationCap',
+  Insurance: 'Shield',
+  Transport: 'Truck',
+  Other: 'Package',
+};
 
 // Category definitions
 const BENEFIT_CATEGORIES = [
@@ -172,8 +184,8 @@ const PartnershipsPage = () => {
       {/* Tab Navigation */}
       <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--border-color)', paddingBottom: 0 }}>
         {[
-          { id: 'benefits', label: '🤝 Employee Benefits & Deals' },
-          { id: 'suggestions', label: `💡 Improvement Suggestions (${suggestions.length})` },
+          { id: 'benefits', label: 'Employee Benefits & Deals', icon: 'Users' },
+          { id: 'suggestions', label: `Improvement Suggestions (${suggestions.length})`, icon: 'Lightbulb' },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -189,9 +201,13 @@ const PartnershipsPage = () => {
               cursor: 'pointer',
               transition: 'all 0.2s',
               marginBottom: -1,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6
             }}
           >
-            {tab.label}
+            <Icon name={tab.icon} size={14} className="icon-inline" />
+            <span>{tab.label}</span>
           </button>
         ))}
       </div>
@@ -215,7 +231,7 @@ const PartnershipsPage = () => {
                     <label className="form-label">Benefit Category *</label>
                     <select className="form-input" value={benefitCategory} onChange={(e) => setBenefitCategory(e.target.value)}>
                       {BENEFIT_CATEGORIES.filter((c) => c.id !== 'All').map((c) => (
-                        <option key={c.id} value={c.id}>{c.emoji} {c.label}</option>
+                        <option key={c.id} value={c.id}>{c.label}</option>
                       ))}
                     </select>
                   </div>
@@ -235,8 +251,9 @@ const PartnershipsPage = () => {
                     <label className="form-label">Deal Expiry Date</label>
                     <input className="form-input" type="date" value={benefitExpiry} onChange={(e) => setBenefitExpiry(e.target.value)} />
                   </div>
-                  <button type="submit" className="btn btn-primary" disabled={submitting}>
-                    {submitting ? 'Saving…' : 'Save Deal'}
+                  <button type="submit" className="btn btn-primary" disabled={submitting} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                    <Icon name="Save" size={14} className="icon-inline" />
+                    <span>Save Deal</span>
                   </button>
                 </form>
               </div>
@@ -272,9 +289,13 @@ const PartnershipsPage = () => {
                         fontWeight: isActive ? 700 : 400,
                         cursor: 'pointer',
                         transition: 'all 0.2s',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6
                       }}
                     >
-                      {cat.emoji} {cat.label}
+                      {categoryIconMap[cat.id] && <Icon name={categoryIconMap[cat.id]} size={12} className="icon-inline" />}
+                      <span>{cat.label}</span>
                     </button>
                   );
                 })}
@@ -308,8 +329,9 @@ const PartnershipsPage = () => {
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                           <div>
-                            <div style={{ fontSize: 14, fontWeight: 700, color: colors.text }}>
-                              {emoji} {p.companyName}
+                            <div style={{ fontSize: 14, fontWeight: 700, color: colors.text, display: 'flex', alignItems: 'center', gap: 6 }}>
+                              {categoryIconMap[p.category] && <Icon name={categoryIconMap[p.category]} size={14} className="icon-inline" />}
+                              <span>{p.companyName}</span>
                             </div>
                             <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
                               {BENEFIT_CATEGORIES.find((c) => c.id === p.category)?.label || p.category}
@@ -329,13 +351,15 @@ const PartnershipsPage = () => {
                           {p.benefitDetails}
                         </p>
                         {p.contactInfo && (
-                          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                            📞 {p.contactInfo}
+                          <div style={{ fontSize: 12, color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <Icon name="Phone" size={12} className="icon-inline" />
+                            <span>{p.contactInfo}</span>
                           </div>
                         )}
                         {p.expiryDate && (
-                          <div style={{ fontSize: 11, color: isExpired ? '#FCA5A5' : 'var(--text-muted)' }}>
-                            📅 Valid until: {new Date(p.expiryDate).toLocaleDateString()}
+                          <div style={{ fontSize: 11, color: isExpired ? '#FCA5A5' : 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <Icon name="Calendar" size={11} className="icon-inline" />
+                            <span>Valid until: {new Date(p.expiryDate).toLocaleDateString()}</span>
                           </div>
                         )}
                       </div>
@@ -393,7 +417,7 @@ const PartnershipsPage = () => {
                   <label className="form-label">Category</label>
                   <select className="form-input" value={suggCategory} onChange={(e) => setSuggCategory(e.target.value)}>
                     {BENEFIT_CATEGORIES.filter((c) => c.id !== 'All').map((c) => (
-                      <option key={c.id} value={c.id}>{c.emoji} {c.label}</option>
+                      <option key={c.id} value={c.id}>{c.label}</option>
                     ))}
                   </select>
                 </div>
@@ -404,8 +428,9 @@ const PartnershipsPage = () => {
                     placeholder="Describe the benefit idea, how it would work, and why it would help employees…"
                     required />
                 </div>
-                <button type="submit" className="btn btn-primary" disabled={submittingSugg}>
-                  {submittingSugg ? 'Submitting…' : '→ Submit Suggestion'}
+                <button type="submit" className="btn btn-primary" disabled={submittingSugg} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <Icon name="Send" size={13} className="icon-inline" />
+                  <span>Submit Suggestion</span>
                 </button>
               </form>
             </div>
@@ -438,8 +463,9 @@ const PartnershipsPage = () => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
                           <div style={{ flex: 1 }}>
                             <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{s.title}</div>
-                            <div style={{ fontSize: 11, color: catColors.text, marginBottom: 6 }}>
-                              {catEmoji} {BENEFIT_CATEGORIES.find((c) => c.id === s.category)?.label || s.category}
+                            <div style={{ fontSize: 11, color: catColors.text, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+                              {categoryIconMap[s.category] && <Icon name={categoryIconMap[s.category]} size={11} className="icon-inline" />}
+                              <span>{BENEFIT_CATEGORIES.find((c) => c.id === s.category)?.label || s.category}</span>
                             </div>
                             <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
                               {s.details}
@@ -469,17 +495,19 @@ const PartnershipsPage = () => {
                               <div style={{ display: 'flex', gap: 6 }}>
                                 <button
                                   className="btn btn-sm"
-                                  style={{ padding: '3px 10px', fontSize: 11, background: '#10B98122', color: '#6EE7B7', border: '1px solid #10B98144' }}
+                                  style={{ padding: '3px 10px', fontSize: 11, background: '#10B98122', color: '#6EE7B7', border: '1px solid #10B98144', display: 'inline-flex', alignItems: 'center', gap: 4 }}
                                   onClick={() => handleUpdateSuggestion(s._id, 'Approved')}
                                 >
-                                  ✓ Approve
+                                  <Icon name="Check" size={11} className="icon-inline" />
+                                  <span>Approve</span>
                                 </button>
                                 <button
                                   className="btn btn-sm"
-                                  style={{ padding: '3px 10px', fontSize: 11, background: '#EF444422', color: '#FCA5A5', border: '1px solid #EF444444' }}
+                                  style={{ padding: '3px 10px', fontSize: 11, background: '#EF444422', color: '#FCA5A5', border: '1px solid #EF444444', display: 'inline-flex', alignItems: 'center', gap: 4 }}
                                   onClick={() => handleUpdateSuggestion(s._id, 'Declined')}
                                 >
-                                  ✗ Decline
+                                  <Icon name="X" size={11} className="icon-inline" />
+                                  <span>Decline</span>
                                 </button>
                               </div>
                             )}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import API from '../services/api';
 import { Icon } from '../components/Icons';
+import { Icon as LucideIcon } from '../utils/iconMapper';
 
 const AFFECTED_PAGES = [
   'Other',
@@ -227,7 +228,9 @@ const TicketsPage = () => {
             Support Tickets Directory
           </div>
           <div style={{ position: 'relative', width: 280 }}>
-            <span style={{ position: 'absolute', left: 10, top: 8, fontSize: 13, color: '#94A3B8' }}>🔍</span>
+            <span style={{ position: 'absolute', left: 10, top: 8, display: 'flex', alignItems: 'center', color: '#94A3B8' }}>
+              <LucideIcon name="Search" size={13} className="text-current" />
+            </span>
             <input
               type="text"
               placeholder="Search by subject, status, or team..."
@@ -252,7 +255,9 @@ const TicketsPage = () => {
           <div className="loading-state" style={{ padding: 40 }}><div className="spinner" />Loading support issues...</div>
         ) : filtered.length === 0 ? (
           <div className="empty-state" style={{ padding: 48 }}>
-            <div style={{ fontSize: 40, marginBottom: 8 }}>🎫</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+              <LucideIcon name="Ticket" size={40} className="text-current" />
+            </div>
             <p style={{ fontWeight: 600, color: '#475569' }}>No support tickets match your search criteria.</p>
           </div>
         ) : (

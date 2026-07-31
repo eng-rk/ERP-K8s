@@ -1,6 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import API from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { Icon } from '../../utils/iconMapper';
+
+const alertIconMap = {
+  Fraud: 'AlertTriangle',
+  Anomaly: 'AlertCircle',
+  Compliance: 'Scale',
+  Recommendation: 'Lightbulb',
+  Info: 'Info',
+};
 
 // ─────────────────────────────────────────────────────────────────
 // RBAC
@@ -68,7 +77,9 @@ const MetricCard = ({ icon, label, value, sub }) => (
     padding: '18px 20px',
     flex: '1 1 180px', minWidth: 160,
   }}>
-    <div style={{ fontSize: 22, marginBottom: 8 }}>{icon}</div>
+    <div style={{ fontSize: 22, marginBottom: 8, display: 'flex', alignItems: 'center' }}>
+      {typeof icon === 'string' ? <Icon name={icon} size={22} className="text-current" /> : icon}
+    </div>
     <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
     <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)' }}>{value}</div>
     {sub && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{sub}</div>}
@@ -85,14 +96,14 @@ const PayrollPage = () => {
 
   // ── Tab State ──
   const TABS = [
-    { id: 'payslips',            label: '📄 My Payslips',         visible: true },
-    { id: 'runs',                label: '🔄 Payroll Runs',         visible: isMgr },
-    { id: 'disbursement-queue',  label: '💸 Disbursement Queue',   visible: isMgr },
-    { id: 'payment-methods',     label: '💳 Payment Methods',      visible: isMgr },
-    { id: 'company-accounts',    label: '🏦 Company Accounts',     visible: isMgr },
-    { id: 'bank-accounts',       label: '👤 Employee Banks',      visible: isMgr },
-    { id: 'alerts',              label: '🚨 Alerts & Fraud',       visible: isMgr },
-    { id: 'analytics',           label: '📊 Analytics',            visible: isMgr },
+    { id: 'payslips',            label: 'My Payslips',         icon: 'FileText',         visible: true },
+    { id: 'runs',                label: 'Payroll Runs',         icon: 'RefreshCw',         visible: isMgr },
+    { id: 'disbursement-queue',  label: 'Disbursement Queue',   icon: 'Send',   visible: isMgr },
+    { id: 'payment-methods',     label: 'Payment Methods',      icon: 'CreditCard',      visible: isMgr },
+    { id: 'company-accounts',    label: 'Company Accounts',     icon: 'Landmark',     visible: isMgr },
+    { id: 'bank-accounts',       label: 'Employee Banks',      icon: 'User',      visible: isMgr },
+    { id: 'alerts',              label: 'Alerts & Fraud',       icon: 'AlertTriangle',       visible: isMgr },
+    { id: 'analytics',           label: 'Analytics',            icon: 'BarChart3',            visible: isMgr },
   ].filter(t => t.visible);
 
   const [activeTab, setActiveTab] = useState('payslips');
@@ -443,7 +454,9 @@ const PayrollPage = () => {
           <div className="loading-state">Loading payslips…</div>
         ) : payslips.length === 0 ? (
           <div className="card" style={{ color: 'var(--text-muted)', textAlign: 'center', padding: 32 }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>📄</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+              <Icon name="FileText" size={32} className="text-current" />
+            </div>
             <div>No payslips found yet. Payslips appear here once payroll is processed.</div>
           </div>
         ) : (
@@ -482,7 +495,10 @@ const PayrollPage = () => {
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Payslip</div>
                 <div style={{ fontWeight: 700, fontSize: 20 }}>{selectedPayslip.period}</div>
               </div>
-              <button onClick={() => window.print()} className="btn btn-secondary btn-sm" style={{ fontSize: 11 }}>🖨️ Print</button>
+              <button onClick={() => window.print()} className="btn btn-secondary btn-sm" style={{ fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <Icon name="Printer" size={11} className="icon-inline" />
+                <span>Print</span>
+              </button>
             </div>
 
             {/* Earnings */}
@@ -544,7 +560,10 @@ const PayrollPage = () => {
             </div>
 
             {selectedPayslip.hrNotes && (
-              <div style={{ marginTop: 12, fontSize: 12, color: 'var(--text-muted)' }}>📝 HR Note: {selectedPayslip.hrNotes}</div>
+              <div style={{ marginTop: 12, fontSize: 12, color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <Icon name="FileText" size={12} className="icon-inline" />
+                <span>HR Note: {selectedPayslip.hrNotes}</span>
+              </div>
             )}
           </div>
         </div>
@@ -568,7 +587,9 @@ const PayrollPage = () => {
       {dqLoading ? <div className="loading-state">Loading…</div>
       : dqList.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 40 }}>
-          <div style={{ fontSize: 36, marginBottom: 8 }}>✅</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+            <Icon name="CheckCircle" size={36} className="text-current" />
+          </div>
           <div>No failed disbursements. All payments processed successfully.</div>
         </div>
       ) : (
@@ -598,8 +619,9 @@ const PayrollPage = () => {
                     </td>
                     <td style={{ fontWeight: 700 }}>{(e.netSalary || 0).toLocaleString()} EGP</td>
                     <td>
-                      <span style={{ fontSize: 12, color: '#B91C1C', background: 'rgba(239,68,68,0.08)', padding: '3px 8px', borderRadius: 6 }}>
-                        ⚠️ {e.failureReason}
+                      <span style={{ fontSize: 12, color: '#B91C1C', background: 'rgba(239,68,68,0.08)', padding: '3px 8px', borderRadius: 6, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <Icon name="AlertTriangle" size={12} className="icon-inline" />
+                        <span>{e.failureReason}</span>
                       </span>
                     </td>
                     <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{new Date(e.updatedAt).toLocaleDateString()}</td>
@@ -608,9 +630,10 @@ const PayrollPage = () => {
                         <button
                           onClick={() => handleRetry(e._id)}
                           className="btn btn-primary btn-sm"
-                          style={{ fontSize: 11, padding: '4px 12px' }}
+                          style={{ fontSize: 11, padding: '4px 12px', display: 'flex', alignItems: 'center', gap: 4 }}
                         >
-                          ✅ Mark Paid
+                          <Icon name="Check" size={11} className="icon-inline" />
+                          <span>Mark Paid</span>
                         </button>
                       </td>
                     )}
@@ -756,8 +779,8 @@ const PayrollPage = () => {
             <div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Run Type</div>
               <select className="form-input" value={runType} onChange={e => setRunType(e.target.value)} style={{ padding: '8px 12px' }}>
-                <option value="Salary">💰 Salary</option>
-                <option value="Bonus">🎁 Bonus</option>
+                <option value="Salary">Salary</option>
+                <option value="Bonus">Bonus</option>
               </select>
             </div>
             {runType === 'Bonus' && (
@@ -837,8 +860,18 @@ const PayrollPage = () => {
                         onClick={() => { setSelectedRun(r); fetchRunEntries(r._id); }}>
                         <td style={{ fontWeight: 600 }}>{r.period}</td>
                         <td>
-                          <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600, background: isBonus ? 'rgba(245,158,11,0.12)' : 'rgba(37,99,235,0.10)', color: isBonus ? '#B45309' : '#2563EB' }}>
-                            {isBonus ? '🎁 Bonus' : '💰 Salary'}
+                          <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600, background: isBonus ? 'rgba(245,158,11,0.12)' : 'rgba(37,99,235,0.10)', color: isBonus ? '#B45309' : '#2563EB', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            {isBonus ? (
+                              <>
+                                <Icon name="Gift" size={11} className="icon-inline" />
+                                <span>Bonus</span>
+                              </>
+                            ) : (
+                              <>
+                                <Icon name="DollarSign" size={11} className="icon-inline" />
+                                <span>Salary</span>
+                              </>
+                            )}
                           </span>
                         </td>
                         <td><Badge label={r.status} bg={s.bg} color={s.text} border={s.border} /></td>
@@ -858,7 +891,10 @@ const PayrollPage = () => {
                               <button onClick={(e) => { e.stopPropagation(); handleReleaseRun(r._id, true); }} className="btn btn-primary btn-sm" style={{ fontSize: 11, padding: '4px 10px', background: 'var(--accent-success)', borderColor: 'var(--accent-success)' }}>Confirm Release</button>
                             )}
                             {r.status === 'PendingRelease' && !isSenior && (
-                              <span style={{ fontSize: 11, color: '#92400E' }}>⏳ Awaiting manager</span>
+                              <span style={{ fontSize: 11, color: '#92400E', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                <Icon name="Clock" size={11} className="icon-inline" />
+                                <span>Awaiting manager</span>
+                              </span>
                             )}
                           </div>
                         </td>
@@ -940,10 +976,10 @@ const PayrollPage = () => {
         {/* Stats Row */}
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
           {[
-            { icon: '🔴', label: 'Open Alerts', value: openCount },
-            { icon: '🚨', label: 'Critical', value: criticalCount },
-            { icon: '👻', label: 'Fraud Flags', value: fraudCount },
-            { icon: '✅', label: 'Resolved', value: alerts.filter(a => a.status === 'Resolved').length },
+            { icon: 'AlertCircle', label: 'Open Alerts', value: openCount },
+            { icon: 'AlertTriangle', label: 'Critical', value: criticalCount },
+            { icon: 'Ghost', label: 'Fraud Flags', value: fraudCount },
+            { icon: 'CheckCircle', label: 'Resolved', value: alerts.filter(a => a.status === 'Resolved').length },
           ].map(({ icon, label, value }) => (
             <MetricCard key={label} icon={icon} label={label} value={value} />
           ))}
@@ -972,7 +1008,9 @@ const PayrollPage = () => {
         {alertsLoading ? <div className="loading-state">Loading alerts…</div>
         : filtered.length === 0 ? (
           <div className="card" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 32 }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>✅</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+              <Icon name="CheckCircle" size={32} className="text-current" />
+            </div>
             <div>No alerts matching the current filter.</div>
           </div>
         ) : (
@@ -989,18 +1027,22 @@ const PayrollPage = () => {
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                      <span style={{ fontSize: 20, flexShrink: 0 }}>{t.icon}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0, color: t.color }}>
+                        {alertIconMap[a.type] ? <Icon name={alertIconMap[a.type]} size={20} className="text-current" /> : null}
+                      </span>
                       <div>
                         <div style={{ fontWeight: 600, fontSize: 14 }}>{a.title}</div>
                         <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 3 }}>{a.message}</div>
                         {a.employeeId && (
-                          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
-                            👤 {a.employeeId.firstName} {a.employeeId.lastName} · {a.employeeId.role}
+                          <div style={{ fontSize: 12, color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                            <Icon name="User" size={12} className="icon-inline" />
+                            <span>{a.employeeId.firstName} {a.employeeId.lastName} · {a.employeeId.role}</span>
                           </div>
                         )}
                         {a.suggestedAction && (
-                          <div style={{ fontSize: 12, marginTop: 5, padding: '4px 8px', background: 'rgba(37,99,235,0.08)', borderRadius: 6, display: 'inline-block', color: 'var(--accent-primary)' }}>
-                            💡 {a.suggestedAction}
+                          <div style={{ fontSize: 12, marginTop: 5, padding: '4px 8px', background: 'rgba(37,99,235,0.08)', borderRadius: 6, display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--accent-primary)' }}>
+                            <Icon name="Lightbulb" size={12} className="icon-inline" />
+                            <span>{a.suggestedAction}</span>
                           </div>
                         )}
                       </div>
@@ -1044,10 +1086,10 @@ const PayrollPage = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {/* KPI Metrics */}
         <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-          <MetricCard icon="👥" label="Total Headcount" value={analytics.headcount} />
-          <MetricCard icon="💰" label="Monthly Payroll" value={(analytics.totalPayroll || 0).toLocaleString() + ' EGP'} />
-          <MetricCard icon="📊" label="Avg Salary" value={(analytics.avgSalary || 0).toLocaleString() + ' EGP'} />
-          <MetricCard icon="🚨" label="Open Alerts" value={analytics.openAlertsCount} sub={analytics.criticalAlertsCount + ' critical'} />
+          <MetricCard icon="Users" label="Total Headcount" value={analytics.headcount} />
+          <MetricCard icon="DollarSign" label="Monthly Payroll" value={(analytics.totalPayroll || 0).toLocaleString() + ' EGP'} />
+          <MetricCard icon="BarChart3" label="Avg Salary" value={(analytics.avgSalary || 0).toLocaleString() + ' EGP'} />
+          <MetricCard icon="AlertTriangle" label="Open Alerts" value={analytics.openAlertsCount} sub={analytics.criticalAlertsCount + ' critical'} />
         </div>
 
         <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start' }}>
@@ -1075,7 +1117,10 @@ const PayrollPage = () => {
           <div style={{ flex: '1 1 280px', display: 'flex', flexDirection: 'column', gap: 14 }}>
             {/* Top Earners */}
             <div className="card">
-              <h3 style={{ margin: '0 0 14px', fontSize: 14 }}>🏆 Top Earners</h3>
+              <h3 style={{ margin: '0 0 14px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Icon name="Trophy" size={14} className="icon-inline" />
+                <span>Top Earners</span>
+              </h3>
               {(analytics.topEarners || []).map((e, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1095,7 +1140,10 @@ const PayrollPage = () => {
 
             {/* Monthly Trend */}
             <div className="card">
-              <h3 style={{ margin: '0 0 14px', fontSize: 14 }}>📈 Monthly Trend</h3>
+              <h3 style={{ margin: '0 0 14px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Icon name="TrendingUp" size={14} className="icon-inline" />
+                <span>Monthly Trend</span>
+              </h3>
               {(analytics.monthlyTrend || []).map((m, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 8 }}>
                   <span style={{ color: 'var(--text-muted)' }}>{m.period}</span>
@@ -1121,8 +1169,18 @@ const PayrollPage = () => {
           <div style={{ fontWeight: 700, fontSize: 15 }}>Company Source Bank Accounts</div>
           <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>The real accounts payroll money is debited from. Stored encrypted — only masked values are shown.</div>
         </div>
-        <button onClick={() => setCaForm({ open: !caForm.open, editing: null, nickname: '', bankName: '', branchName: '', accountName: '', accountNumber: '', iban: '', swiftCode: '', disbursementProvider: 'Fawry', monthlyLimit: '', isDefault: false, notes: '' })} className="btn btn-primary btn-sm" style={{ fontSize: 11 }}>
-          {caForm.open ? '✕ Close' : '➕ Add Account'}
+        <button onClick={() => setCaForm({ open: !caForm.open, editing: null, nickname: '', bankName: '', branchName: '', accountName: '', accountNumber: '', iban: '', swiftCode: '', disbursementProvider: 'Fawry', monthlyLimit: '', isDefault: false, notes: '' })} className="btn btn-primary btn-sm" style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 6 }}>
+          {caForm.open ? (
+            <>
+              <Icon name="X" size={11} className="icon-inline" />
+              <span>Close</span>
+            </>
+          ) : (
+            <>
+              <Icon name="Plus" size={11} className="icon-inline" />
+              <span>Add Account</span>
+            </>
+          )}
         </button>
       </div>
 
@@ -1161,7 +1219,10 @@ const PayrollPage = () => {
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: 'flex-end' }}>
             <button className="btn btn-secondary btn-sm" onClick={() => { setCaForm({ ...caForm, open: false }); setCaMsg({ type: '', text: '' }); }}>Cancel</button>
-            <button className="btn btn-primary btn-sm" onClick={handleCaSave}>💾 Save Account</button>
+            <button className="btn btn-primary btn-sm" onClick={handleCaSave} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Icon name="Save" size={14} className="icon-inline" />
+              <span>Save Account</span>
+            </button>
           </div>
         </div>
       )}
@@ -1182,9 +1243,14 @@ const PayrollPage = () => {
                     <td style={{ fontFamily: 'monospace' }}>{a.accountMasked || a.ibanMasked || '—'}</td>
                     <td>{a.disbursementProvider}</td>
                     <td>
-                      {a.verifiedAt
-                        ? <span style={{ color: '#047857', fontSize: 12 }}>✓ Verified</span>
-                        : <span style={{ color: '#B45309', fontSize: 12 }}>Unverified</span>}
+                      {a.verifiedAt ? (
+                        <span style={{ color: '#047857', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <Icon name="Check" size={12} className="icon-inline" />
+                          <span>Verified</span>
+                        </span>
+                      ) : (
+                        <span style={{ color: '#B45309', fontSize: 12 }}>Unverified</span>
+                      )}
                       {!a.isActive && <span style={{ color: '#B91C1C', fontSize: 12, marginLeft: 6 }}>· Inactive</span>}
                     </td>
                     <td>
@@ -1225,7 +1291,10 @@ const PayrollPage = () => {
             <div style={{ fontWeight: 700, fontSize: 15 }}>Employee Bank Accounts</div>
             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>Each employee is paid via a vendor (Fawry / PayMob / InstaPay / …). Required fields adapt to the selected vendor.</div>
           </div>
-          <button onClick={() => handleBaOpen(null)} className="btn btn-primary btn-sm" style={{ fontSize: 11 }}>➕ Add Bank Account</button>
+          <button onClick={() => handleBaOpen(null)} className="btn btn-primary btn-sm" style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Icon name="Plus" size={11} className="icon-inline" />
+            <span>Add Bank Account</span>
+          </button>
         </div>
 
         {baMsg.text && (
@@ -1243,7 +1312,7 @@ const PayrollPage = () => {
               </Field>
               <Field label="Payment Vendor (Gateway)">
                 <select className="form-input" value={baForm.vendor} onChange={e => setBaForm({ ...baForm, vendor: e.target.value, method: vendorOf(e.target.value).methods[0] })}>
-                  {vendors.map(v => <option key={v.key} value={v.key}>{v.label}{v.configured ? ' ✓' : ' (not configured)'}</option>)}
+                  {vendors.map(v => <option key={v.key} value={v.key}>{v.label}{v.configured ? ' (Configured)' : ' (not configured)'}</option>)}
                 </select>
               </Field>
             </div>
@@ -1251,7 +1320,7 @@ const PayrollPage = () => {
             <div style={{ marginTop: 12, maxWidth: 280 }}>
               <Field label="Disbursement Method">
                 <select className="form-input" value={baForm.method} onChange={e => setBaForm({ ...baForm, method: e.target.value })}>
-                  {cap.methods.map(m => <option key={m} value={m}>{m === 'BankAccount' ? '🏦 Bank Account' : m === 'FawryWallet' ? '📱 Fawry Wallet' : m === 'PayMobWallet' ? '💳 PayMob Wallet' : m}</option>)}
+                  {cap.methods.map(m => <option key={m} value={m}>{m === 'BankAccount' ? 'Bank Account' : m === 'FawryWallet' ? 'Fawry Wallet' : m === 'PayMobWallet' ? 'PayMob Wallet' : m}</option>)}
                 </select>
               </Field>
             </div>
@@ -1275,13 +1344,21 @@ const PayrollPage = () => {
 
             {baErrors.length > 0 && (
               <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 8, padding: 10, marginTop: 12 }}>
-                {baErrors.map((err, i) => <div key={i} style={{ fontSize: 12, color: '#B91C1C' }}>⚠️ {err}</div>)}
+                {baErrors.map((err, i) => (
+                  <div key={i} style={{ fontSize: 12, color: '#B91C1C', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Icon name="AlertTriangle" size={12} className="icon-inline" />
+                    <span>{err}</span>
+                  </div>
+                ))}
               </div>
             )}
 
             <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: 'flex-end' }}>
               <button className="btn btn-secondary btn-sm" onClick={() => setBaForm({ ...baForm, open: false })}>Cancel</button>
-              <button className="btn btn-primary btn-sm" onClick={handleBaSave}>💾 Save Bank Account</button>
+              <button className="btn btn-primary btn-sm" onClick={handleBaSave} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Icon name="Save" size={14} className="icon-inline" />
+                <span>Save Bank Account</span>
+              </button>
             </div>
           </div>
         )}
@@ -1303,9 +1380,14 @@ const PayrollPage = () => {
                       <td>{a.bankName}</td>
                       <td style={{ fontFamily: 'monospace' }}>{a.accountNumber || a.iban || '—'}</td>
                       <td>
-                        {a.isVerified
-                          ? <span style={{ color: '#047857', fontSize: 12 }}>✓ Verified</span>
-                          : <span style={{ color: '#B45309', fontSize: 12 }}>Unverified</span>}
+                        {a.isVerified ? (
+                          <span style={{ color: '#047857', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <Icon name="Check" size={12} className="icon-inline" />
+                            <span>Verified</span>
+                          </span>
+                        ) : (
+                          <span style={{ color: '#B45309', fontSize: 12 }}>Unverified</span>
+                        )}
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: 6 }}>
@@ -1408,7 +1490,12 @@ const PayrollPage = () => {
 
             {releaseModal.readiness.issues?.length > 0 && (
               <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 8, padding: 10, marginBottom: 14 }}>
-                {releaseModal.readiness.issues.map((iss, i) => <div key={i} style={{ fontSize: 12, color: '#B91C1C' }}>⚠️ {iss}</div>)}
+                {releaseModal.readiness.issues.map((iss, i) => (
+                  <div key={i} style={{ fontSize: 12, color: '#B91C1C', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Icon name="AlertTriangle" size={12} className="icon-inline" />
+                    <span>{iss}</span>
+                  </div>
+                ))}
               </div>
             )}
 
@@ -1445,7 +1532,7 @@ const PayrollPage = () => {
                 disabled={releaseModal.loading || !releaseModal.sourceAccountId}
                 onClick={confirmRelease}
               >
-                {releaseModal.loading ? 'Processing…' : (releaseModal.isPending ? 'Request Release' : (releaseModal.mode === 'live' ? '⚠ RELEASE — LIVE' : 'Release (Simulation)'))}
+                {releaseModal.loading ? 'Processing…' : (releaseModal.isPending ? 'Request Release' : (releaseModal.mode === 'live' ? <><Icon name="AlertTriangle" size={12} className="icon-inline" /><span>RELEASE — LIVE</span></> : 'Release (Simulation)'))}
               </button>
             </div>
           </div>

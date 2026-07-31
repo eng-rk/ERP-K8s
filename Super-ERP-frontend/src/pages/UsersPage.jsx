@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
 import { Icon } from '../components/Icons';
+import { Icon as LucideIcon } from '../utils/iconMapper';
 import { DEPARTMENTS, getRolesByDepartment, getDepartmentByRole } from '../services/departmentJobs';
 
 const roleBadge = (role) => {
@@ -173,11 +174,11 @@ const UsersPage = () => {
                     <td>
                       {user.smtpUser ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span className="badge badge-qualified" style={{ fontSize: 10 }}>✓ Configured</span>
+                          <span className="badge badge-qualified" style={{ fontSize: 10, display: 'inline-flex', alignItems: 'center', gap: 4 }}><LucideIcon name="Check" size={10} className="icon-inline" /><span>Configured</span></span>
                           <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{user.smtpUser}</span>
                         </div>
                       ) : (
-                        <span className="badge badge-lost" style={{ fontSize: 10 }}>✗ Not Set</span>
+                        <span className="badge badge-lost" style={{ fontSize: 10, display: 'inline-flex', alignItems: 'center', gap: 4 }}><LucideIcon name="X" size={10} className="icon-inline" /><span>Not Set</span></span>
                       )}
                     </td>
                     <td>

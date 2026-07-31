@@ -5,6 +5,7 @@ import API, { API_HOST } from '../services/api';
 import OfferHistoryModal from '../components/OfferHistoryModal';
 import OfferVersionsModal from '../components/OfferVersionsModal';
 import { Icon } from '../components/Icons';
+import { Icon as LucideIcon } from '../utils/iconMapper';
 import EmailComposer from './EmailComposer';
 
 const statusBadge = (status) => {
@@ -387,7 +388,9 @@ const LeadDetailsPage = () => {
           {/* Offers List */}
           {offers.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-state-icon">💼</div>
+              <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+                <LucideIcon name="Briefcase" size={48} className="text-current" />
+              </div>
               <p>No offers yet. Create one to get started.</p>
             </div>
           ) : (
@@ -467,25 +470,25 @@ const LeadDetailsPage = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', paddingTop: 8, borderTop: '1px solid var(--border-color)' }}>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', paddingTop: 8, borderTop: '1px solid var(--border-color)', alignItems: 'center' }}>
                     {offer.status === 'Draft' && (
                       <>
-                        <button className="btn btn-secondary btn-sm" onClick={() => handleSend(offer._id, 'Email')} disabled={sendingId === offer._id}>
-                          {sendingId === offer._id ? 'Sending...' : '📧 Send Email'}
+                        <button className="btn btn-secondary btn-sm" onClick={() => handleSend(offer._id, 'Email')} disabled={sendingId === offer._id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {sendingId === offer._id ? 'Sending...' : <><LucideIcon name="Mail" size={16} className="icon-inline" /><span>Send Email</span></>}
                         </button>
-                        <button className="btn btn-secondary btn-sm" onClick={() => handleSend(offer._id, 'SMS')} disabled={sendingId === offer._id}>
-                          💬 Send SMS
+                        <button className="btn btn-secondary btn-sm" onClick={() => handleSend(offer._id, 'SMS')} disabled={sendingId === offer._id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <LucideIcon name="MessageSquare" size={16} className="icon-inline" /><span>Send SMS</span>
                         </button>
                         {offer.createdBy._id === user._id && (
                           <>
-                            <button className="btn btn-secondary btn-sm" onClick={() => { setImageUploadTarget(offer._id); setShowImageModal(true); }}>
-                              📷 Add Photo
+                            <button className="btn btn-secondary btn-sm" onClick={() => { setImageUploadTarget(offer._id); setShowImageModal(true); }} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <LucideIcon name="Camera" size={16} className="icon-inline" /><span>Add Photo</span>
                             </button>
-                            <button className="btn btn-primary btn-sm" onClick={() => openEditModal(offer)}>
-                              ✏️ Edit
+                            <button className="btn btn-primary btn-sm" onClick={() => openEditModal(offer)} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <LucideIcon name="Pencil" size={16} className="icon-inline" /><span>Edit</span>
                             </button>
-                            <button className="btn btn-secondary btn-sm" onClick={() => handleDelete(offer._id)} style={{ color: 'var(--status-lost)' }}>
-                              🗑️ Delete
+                            <button className="btn btn-secondary btn-sm" onClick={() => handleDelete(offer._id)} style={{ color: 'var(--status-lost)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <LucideIcon name="Trash2" size={16} className="icon-inline" style={{ color: 'var(--status-lost)' }} /><span>Delete</span>
                             </button>
                           </>
                         )}
@@ -494,30 +497,30 @@ const LeadDetailsPage = () => {
                     
                     {offer.status === 'Sent' && (
                       <>
-                        <button className="btn btn-secondary btn-sm" onClick={() => handleSend(offer._id, 'Email')} disabled={sendingId === offer._id}>
-                          {sendingId === offer._id ? 'Sending...' : '🔄 Resend Email'}
+                        <button className="btn btn-secondary btn-sm" onClick={() => handleSend(offer._id, 'Email')} disabled={sendingId === offer._id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {sendingId === offer._id ? 'Sending...' : <><LucideIcon name="RefreshCw" size={16} className="icon-inline" /><span>Resend Email</span></>}
                         </button>
-                        <button className="btn btn-primary btn-sm" onClick={() => { setReviseOpenId(offer._id); setShowReviseModal(true); setRevisionRequirement(''); }}>
-                          ✏️ Revise Offer
+                        <button className="btn btn-primary btn-sm" onClick={() => { setReviseOpenId(offer._id); setShowReviseModal(true); setRevisionRequirement(''); }} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <LucideIcon name="Repeat" size={16} className="icon-inline" /><span>Revise Offer</span>
                         </button>
-                        <button className="btn btn-secondary btn-sm" onClick={() => { setImageUploadTarget(offer._id); setShowImageModal(true); }}>
-                          📷 Add Photo
+                        <button className="btn btn-secondary btn-sm" onClick={() => { setImageUploadTarget(offer._id); setShowImageModal(true); }} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <LucideIcon name="Camera" size={16} className="icon-inline" /><span>Add Photo</span>
                         </button>
                       </>
                     )}
 
                     {offer.status === 'Accepted' && (
-                      <button className="btn btn-primary btn-sm" onClick={() => handleUpdateOfferStatus(offer._id, 'Completed')}>
-                        ✅ Complete Sale
+                      <button className="btn btn-primary btn-sm" onClick={() => handleUpdateOfferStatus(offer._id, 'Completed')} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <LucideIcon name="CheckCircle" size={16} className="icon-inline" /><span>Complete Sale</span>
                       </button>
                     )}
 
                     <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-                      <button className="btn btn-secondary btn-sm" onClick={() => { setHistoryOpenId(offer._id); setShowHistoryModal(true); }}>
-                        📋 History
+                      <button className="btn btn-secondary btn-sm" onClick={() => { setHistoryOpenId(offer._id); setShowHistoryModal(true); }} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <LucideIcon name="ClipboardList" size={16} className="icon-inline" /><span>History</span>
                       </button>
-                      <button className="btn btn-secondary btn-sm" onClick={() => { setVersionsOpenId(offer._id); setShowVersionsModal(true); }}>
-                        📑 Versions
+                      <button className="btn btn-secondary btn-sm" onClick={() => { setVersionsOpenId(offer._id); setShowVersionsModal(true); }} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <LucideIcon name="Files" size={16} className="icon-inline" /><span>Versions</span>
                       </button>
                     </div>
                   </div>
@@ -897,19 +900,30 @@ const TemplateEditorInline = ({ mode, editingTemplateId, blocks, setBlocks, temp
             { type: 'offer-details', label: 'Offer Details', icon: '📋' },
             { type: 'payment-link', label: 'Payment Button', icon: '💳' },
             { type: 'company-info', label: 'Company Info', icon: '🏢' },
-          ].map(bt => (
-            <div
-              key={bt.type}
-              onClick={() => { const newBlock = addBlock(bt.type); setBlocks([...blocks, newBlock]); setSelectedBlockId(newBlock.id); }}
-              style={{
-                padding: '10px 12px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)',
-                borderRadius: 6, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13
-              }}
-            >
-              <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>{bt.icon}</span>
-              <span>{bt.label}</span>
-            </div>
-          ))}
+          ].map(bt => {
+            const templateEmojiMap = {
+              '🖼': 'Image',
+              '🔘': 'Circle',
+              '📋': 'ClipboardList',
+              '💳': 'DollarSign',
+              '🏢': 'Building2'
+            };
+            return (
+              <div
+                key={bt.type}
+                onClick={() => { const newBlock = addBlock(bt.type); setBlocks([...blocks, newBlock]); setSelectedBlockId(newBlock.id); }}
+                style={{
+                  padding: '10px 12px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)',
+                  borderRadius: 6, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13
+                }}
+              >
+                <span style={{ fontSize: 16, width: 24, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {templateEmojiMap[bt.icon] ? <LucideIcon name={templateEmojiMap[bt.icon]} size={16} /> : bt.icon}
+                </span>
+                <span>{bt.label}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
 

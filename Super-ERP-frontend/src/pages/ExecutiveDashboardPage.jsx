@@ -5,6 +5,7 @@ import {
 } from 'recharts';
 import API from '../services/api';
 import { Icon } from '../components/Icons';
+import { Icon as LucideIcon } from '../utils/iconMapper';
 
 // ── Colour tokens ──────────────────────────────────────────────
 const C = {
@@ -282,8 +283,11 @@ const ExecutiveDashboardPage = () => {
                       color: 'var(--text-primary)',
                       boxShadow: 'var(--shadow-sm)'
                     }}>
-                      <p style={{ fontSize: 13, lineHeight: 1.6, margin: 0 }}>
-                        💡 <strong>{marketingData.winningPlatform.platform}</strong> is currently performing better with a <strong>{marketingData.winningPlatform.conversionRate}%</strong> conversion rate compared to <strong>{marketingData.losingPlatform.platform}</strong>'s <strong>{marketingData.losingPlatform.conversionRate}%</strong>. We recommend prioritizing <strong>{marketingData.winningPlatform.platform}</strong> for upcoming campaign budgets.
+                      <p style={{ fontSize: 13, lineHeight: 1.6, margin: 0, display: 'flex', alignItems: 'flex-start' }}>
+                        <LucideIcon name="Lightbulb" size={14} className="icon-inline" style={{ marginTop: 2, flexShrink: 0 }} />
+                        <span>
+                          <strong>{marketingData.winningPlatform.platform}</strong> is currently performing better with a <strong>{marketingData.winningPlatform.conversionRate}%</strong> conversion rate compared to <strong>{marketingData.losingPlatform.platform}</strong>'s <strong>{marketingData.losingPlatform.conversionRate}%</strong>. We recommend prioritizing <strong>{marketingData.winningPlatform.platform}</strong> for upcoming campaign budgets.
+                        </span>
                       </p>
                     </div>
                   ) : (

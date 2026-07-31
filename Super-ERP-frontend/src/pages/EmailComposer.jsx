@@ -11,6 +11,7 @@ import FontFamily from '@tiptap/extension-font-family';
 import Highlight from '@tiptap/extension-highlight';
 import Underline from '@tiptap/extension-underline';
 import API from '../services/api';
+import { Icon as LucideIcon } from '../utils/iconMapper';
 
 // SVG Icon Helpers
 const Icon = ({ path, size = 18, color = 'currentColor', style = {} }) => (
@@ -523,13 +524,13 @@ const EmailComposer = ({ offer, lead, user, onClose, onSend }) => {
       {/* ALERT NOTIFICATIONS */}
       {error && (
         <div style={{ background: '#FEF2F2', color: '#991B1B', borderBottom: '1px solid #FCA5A5', padding: '8px 16px', fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>⚠️ {error}</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><LucideIcon name="AlertTriangle" size={14} className="icon-inline" /><span>{error}</span></span>
           <button onClick={() => setError('')} style={{ background: 'none', border: 'none', color: '#991B1B', cursor: 'pointer', fontWeight: 'bold' }}>×</button>
         </div>
       )}
       {success && (
         <div style={{ background: '#ECFDF5', color: '#065F46', borderBottom: '1px solid #6EE7B7', padding: '8px 16px', fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>✨ {success}</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><LucideIcon name="Sparkles" size={14} className="icon-inline" /><span>{success}</span></span>
           <button onClick={() => setSuccess('')} style={{ background: 'none', border: 'none', color: '#065F46', cursor: 'pointer', fontWeight: 'bold' }}>×</button>
         </div>
       )}

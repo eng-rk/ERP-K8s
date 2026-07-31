@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Icon } from '../utils/iconMapper';
 
 // ── Avatar helper ──────────────────────────────────────────────────────────────
 const Avatar = ({ person, size = 34 }) => {
@@ -261,9 +262,9 @@ const EmailsPage = () => {
           <button
             className={`btn ${activeTab === 'inbox' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setActiveTab('inbox')}
-            style={{ justifyContent: 'flex-start', padding: '12px 16px', position: 'relative' }}
+            style={{ justifyContent: 'flex-start', padding: '12px 16px', position: 'relative', display: 'flex', alignItems: 'center', gap: 6 }}
           >
-            📥 Inbox
+            <Icon name="Mail" size={16} className="icon-inline" /><span>Inbox</span>
             {unreadCount > 0 && (
               <span style={{
                 position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
@@ -275,16 +276,16 @@ const EmailsPage = () => {
           <button
             className={`btn ${activeTab === 'sent' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setActiveTab('sent')}
-            style={{ justifyContent: 'flex-start', padding: '12px 16px' }}
+            style={{ justifyContent: 'flex-start', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 6 }}
           >
-            📤 Sent
+            <Icon name="Send" size={16} className="icon-inline" /><span>Sent</span>
           </button>
           <button
             className={`btn ${activeTab === 'compose' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setActiveTab('compose')}
-            style={{ justifyContent: 'flex-start', padding: '12px 16px' }}
+            style={{ justifyContent: 'flex-start', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 6 }}
           >
-            ✏️ New Email
+            <Icon name="Pencil" size={16} className="icon-inline" /><span>New Email</span>
           </button>
         </div>
 
@@ -324,8 +325,8 @@ const EmailsPage = () => {
                     value={composeBody} onChange={e => setComposeBody(e.target.value)}
                     style={{ resize: 'vertical' }} required />
                 </div>
-                <button type="submit" className="btn btn-primary" disabled={sending} style={{ alignSelf: 'flex-start' }}>
-                  {sending ? 'Sending…' : '📨 Send Message'}
+                <button type="submit" className="btn btn-primary" disabled={sending} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {sending ? 'Sending…' : <><Icon name="Send" size={16} className="icon-inline" /><span>Send Message</span></>}
                 </button>
               </form>
             </div>
@@ -415,7 +416,7 @@ const EmailsPage = () => {
                     flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: 'var(--text-muted)', flexDirection: 'column', gap: 12
                   }}>
-                    <span style={{ fontSize: 40 }}>✉️</span>
+                    <Icon name="Mail" size={40} className="text-current" />
                     <span style={{ fontSize: 14 }}>Select an email to read it</span>
                   </div>
                 ) : (
@@ -450,7 +451,7 @@ const EmailsPage = () => {
                           onClick={() => { setShowReplyBox(true); setReplyMsg({ type: '', text: '' }); }}
                           style={{ flexShrink: 0, padding: '7px 16px', display: 'flex', alignItems: 'center', gap: 6 }}
                         >
-                          ↩ Reply
+                          <Icon name="Repeat" size={16} className="icon-inline" /><span>Reply</span>
                         </button>
                       </div>
                     </div>
@@ -528,8 +529,8 @@ const EmailsPage = () => {
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
                             <button type="submit" className="btn btn-primary btn-sm" disabled={sendingReply}
-                              style={{ padding: '9px 18px' }}>
-                              {sendingReply ? 'Sending…' : '↩ Send'}
+                              style={{ padding: '9px 18px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                              {sendingReply ? 'Sending…' : <><Icon name="Send" size={16} className="icon-inline" /><span>Send</span></>}
                             </button>
                             <button type="button" className="btn btn-secondary btn-sm"
                               onClick={() => { setShowReplyBox(false); setReplyBody(''); }}
@@ -554,10 +555,10 @@ const EmailsPage = () => {
                           onClick={() => setShowReplyBox(true)}
                           style={{
                             flexGrow: 1, textAlign: 'left', padding: '10px 14px',
-                            color: 'var(--text-muted)', fontSize: 13, justifyContent: 'flex-start'
+                            color: 'var(--text-muted)', fontSize: 13, justifyContent: 'flex-start', display: 'flex', alignItems: 'center', gap: 6
                           }}
                         >
-                          ↩ Click to reply to this thread…
+                          <Icon name="Repeat" size={16} className="icon-inline" /><span>Click to reply to this thread…</span>
                         </button>
                       </div>
                     )}

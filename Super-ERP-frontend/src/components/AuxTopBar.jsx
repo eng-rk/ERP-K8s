@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAux, AUX_COLORS, AUX_ICONS } from '../context/AuxContext';
 import { useAuth } from '../context/AuthContext';
+import { Icon } from '../utils/iconMapper';
 
 const STATUSES = ['Live', 'Training', 'Coaching', 'Break', 'Logged out'];
 
@@ -100,7 +101,9 @@ const AuxTopBar = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1, maxWidth: 520 }}>
         {/* Omni Search Bar */}
         <form onSubmit={handleOmniSearch} style={{ flex: 1, position: 'relative' }}>
-          <span style={{ position: 'absolute', left: 12, top: 10, fontSize: 13, color: '#94A3B8' }}>🔍</span>
+          <span style={{ position: 'absolute', left: 12, top: 10, fontSize: 13, color: '#94A3B8' }}>
+            <Icon name="Search" size={14} />
+          </span>
           <input
             type="text"
             value={searchQuery}
@@ -162,32 +165,33 @@ const AuxTopBar = () => {
             >
               <button
                 onClick={() => { navigate('/leads'); setOpenQuickAdd(false); }}
-                style={{ width: '100%', padding: '8px 12px', border: 'none', background: 'none', textAlign: 'left', fontSize: 12, cursor: 'pointer', display: 'flex', gap: 8 }}
+                style={{ width: '100%', padding: '8px 12px', border: 'none', background: 'none', textAlign: 'left', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
               >
-                <span>👤</span> New Lead
+                <Icon name="User" size={16} className="icon-inline" /><span>New Lead</span>
               </button>
               <button
                 onClick={() => { navigate('/email-composer'); setOpenQuickAdd(false); }}
-                style={{ width: '100%', padding: '8px 12px', border: 'none', background: 'none', textAlign: 'left', fontSize: 12, cursor: 'pointer', display: 'flex', gap: 8 }}
+                style={{ width: '100%', padding: '8px 12px', border: 'none', background: 'none', textAlign: 'left', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
               >
-                <span>✉️</span> Compose Email
+                <Icon name="Mail" size={16} className="icon-inline" /><span>Compose Email</span>
               </button>
               <button
                 onClick={() => { navigate('/tickets'); setOpenQuickAdd(false); }}
-                style={{ width: '100%', padding: '8px 12px', border: 'none', background: 'none', textAlign: 'left', fontSize: 12, cursor: 'pointer', display: 'flex', gap: 8 }}
+                style={{ width: '100%', padding: '8px 12px', border: 'none', background: 'none', textAlign: 'left', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
               >
-                <span>🎫</span> New Support Ticket
+                <Icon name="Ticket" size={16} className="icon-inline" /><span>New Support Ticket</span>
               </button>
               <button
                 onClick={() => { navigate('/inventory/items'); setOpenQuickAdd(false); }}
-                style={{ width: '100%', padding: '8px 12px', border: 'none', background: 'none', textAlign: 'left', fontSize: 12, cursor: 'pointer', display: 'flex', gap: 8 }}
+                style={{ width: '100%', padding: '8px 12px', border: 'none', background: 'none', textAlign: 'left', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
               >
-                <span>📦</span> Add Inventory Item
+                <Icon name="Package" size={16} className="icon-inline" /><span>Add Inventory Item</span>
               </button>
             </div>
           )}
         </div>
       </div>
+
 
       {/* CENTER: Today's Aux Stats */}
       <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
@@ -241,7 +245,7 @@ const AuxTopBar = () => {
           }}
         >
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, display: 'inline-block' }} />
-          {AUX_ICONS[currentAux]} {currentAux}
+          <Icon name="Circle" size={12} className="icon-inline" style={{ fill: color, color }} /><span>{currentAux}</span>
           <span
             style={{
               fontFamily: 'monospace',
@@ -299,7 +303,7 @@ const AuxTopBar = () => {
                   }}
                 >
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: c, flexShrink: 0 }} />
-                  {AUX_ICONS[s]} {s}
+                  <Icon name="Circle" size={12} className="icon-inline" style={{ fill: c, color: c }} /><span>{s}</span>
                 </button>
               );
             })}

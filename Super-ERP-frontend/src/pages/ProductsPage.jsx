@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '../components/Icons';
 import API from '../services/api';
+import { Icon as LucideIcon } from '../utils/iconMapper';
 import { useAuth } from '../context/AuthContext';
 
 const statusBadge = (status) => {
@@ -123,7 +124,9 @@ const ProductsPage = () => {
 
       {products.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">📦</div>
+          <div className="empty-state-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+            <LucideIcon name="Package" size={48} className="text-current" />
+          </div>
           <p>No products yet. Add your first product to start building offers.</p>
         </div>
       ) : (

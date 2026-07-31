@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import API from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { Icon } from '../../utils/iconMapper';
 
 const fmt = (n) => (n || 0).toLocaleString() + ' EGP';
 
@@ -241,10 +242,10 @@ const MyPayrollPage = () => {
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--border-color)', paddingBottom: 0, overflowX: 'auto' }}>
         {[
-          { id: 'payslips', label: '📄 Payslips' },
-          { id: 'history', label: '🧾 Payment History' },
-          { id: 'bank', label: '🏦 Bank Account' },
-          { id: 'payment', label: '💳 Payment Method' },
+          { id: 'payslips', label: 'Payslips', icon: 'FileText' },
+          { id: 'history', label: 'Payment History', icon: 'Receipt' },
+          { id: 'bank', label: 'Bank Account', icon: 'Landmark' },
+          { id: 'payment', label: 'Payment Method', icon: 'CreditCard' },
         ].map(t => (
           <button
             key={t.id}
@@ -255,9 +256,11 @@ const MyPayrollPage = () => {
               color: tab === t.id ? 'var(--accent-primary)' : 'var(--text-muted)',
               fontWeight: tab === t.id ? 600 : 400, fontSize: 13, cursor: 'pointer',
               padding: '10px 18px', fontFamily: 'inherit', whiteSpace: 'nowrap', marginBottom: -1,
+              display: 'inline-flex', alignItems: 'center', gap: 6
             }}
           >
-            {t.label}
+            <Icon name={t.icon} size={14} className="icon-inline" />
+            <span>{t.label}</span>
           </button>
         ))}
       </div>
@@ -269,7 +272,14 @@ const MyPayrollPage = () => {
           {/* Add / Edit Card Form */}
           <div style={{ flex: '1 1 320px' }}>
             <div className="card">
-              <h3 style={{ margin: '0 0 12px', fontSize: 15 }}>{editingId ? '✏️ Edit Card' : 'Add Payment Card'}</h3>
+              <h3 style={{ margin: '0 0 12px', fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}>
+                {editingId ? (
+                  <>
+                    <Icon name="Edit" size={15} className="icon-inline" />
+                    <span>Edit Card</span>
+                  </>
+                ) : 'Add Payment Card'}
+              </h3>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>
                 {editingId ? 'Update your card details. It will be resubmitted for payroll team approval.' : 'Your card details will be reviewed and approved by the payroll team before use.'}
               </p>
@@ -364,7 +374,12 @@ const MyPayrollPage = () => {
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
                           <span style={{ padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600, background: sc.bg, color: sc.color }}>{pm.status}</span>
-                          {pm.isActive && <span style={{ fontSize: 11, color: '#047857' }}>✓ Active</span>}
+                          {pm.isActive && (
+                            <span style={{ fontSize: 11, color: '#047857', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              <Icon name="Check" size={12} className="icon-inline" />
+                              <span>Active</span>
+                            </span>
+                          )}
                           <div style={{ display: 'flex', gap: 6 }}>
                             {!isBeingEdited && (
                               <button onClick={() => startEdit(pm)} className="btn btn-secondary btn-sm" style={{ fontSize: 11, padding: '3px 8px' }}>Edit</button>
@@ -426,7 +441,10 @@ const MyPayrollPage = () => {
                     <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Payslip</div>
                     <div style={{ fontWeight: 700, fontSize: 20 }}>{selected.period}</div>
                   </div>
-                  <button onClick={() => window.print()} className="btn btn-secondary btn-sm" style={{ fontSize: 11 }}>🖨️ Print</button>
+                  <button onClick={() => window.print()} className="btn btn-secondary btn-sm" style={{ fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <Icon name="Printer" size={11} className="icon-inline" />
+                    <span>Print</span>
+                  </button>
                 </div>
 
                 <Section title="Earnings" color="var(--accent-success)" rows={EARNINGS} data={selected} />
@@ -487,13 +505,21 @@ const MyPayrollPage = () => {
               </div>
               {baErrors.length > 0 && (
                 <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 8, padding: 10, marginTop: 12 }}>
-                  {baErrors.map((err, i) => <div key={i} style={{ fontSize: 12, color: '#B91C1C' }}>⚠️ {err}</div>)}
+                  {baErrors.map((err, i) => (
+                    <div key={i} style={{ fontSize: 12, color: '#B91C1C', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Icon name="AlertTriangle" size={12} className="icon-inline" />
+                      <span>{err}</span>
+                    </div>
+                  ))}
                 </div>
               )}
               {baMsg.text && (
                 <div style={{ padding: '8px 12px', borderRadius: 8, fontSize: 12, marginTop: 12, background: baMsg.type === 'error' ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)', color: baMsg.type === 'error' ? '#B91C1C' : '#047857' }}>{baMsg.text}</div>
               )}
-              <button className="btn btn-primary" style={{ marginTop: 14 }} onClick={handleBaSave} disabled={baLoading}>💾 Save Bank Account</button>
+              <button className="btn btn-primary" style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 6 }} onClick={handleBaSave} disabled={baLoading}>
+                <Icon name="Save" size={14} className="icon-inline" />
+                <span>Save Bank Account</span>
+              </button>
             </div>
           </div>
           <div style={{ flex: '1 1 320px' }}>
@@ -506,7 +532,19 @@ const MyPayrollPage = () => {
                   <div style={{ fontSize: 13 }}><strong>Method:</strong> {myBank.disbursementMethod}</div>
                   <div style={{ fontSize: 13 }}><strong>Bank:</strong> {myBank.bankName}</div>
                   <div style={{ fontSize: 13 }}><strong>Account:</strong> <span style={{ fontFamily: 'monospace' }}>{myBank.accountNumber || myBank.iban || '—'}</span></div>
-                  <div style={{ fontSize: 13, marginTop: 6, color: myBank.isVerified ? '#047857' : '#B45309' }}>{myBank.isVerified ? '✓ Verified by HR' : '⏳ Pending HR verification'}</div>
+                  <div style={{ fontSize: 13, marginTop: 6, display: 'flex', alignItems: 'center', gap: 4, color: myBank.isVerified ? '#047857' : '#B45309' }}>
+                    {myBank.isVerified ? (
+                      <>
+                        <Icon name="Check" size={13} className="icon-inline" />
+                        <span>Verified by HR</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="Clock" size={13} className="icon-inline" />
+                        <span>Pending HR verification</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               ) : <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>No bank account on file yet.</div>}
             </div>

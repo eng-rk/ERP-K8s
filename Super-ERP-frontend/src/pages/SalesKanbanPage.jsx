@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import API from '../services/api';
 import { Icon } from '../components/Icons';
+import { Icon as LucideIcon } from '../utils/iconMapper';
 
 const COLUMNS = [
   { id: 'New', label: 'New Lead', icon: 'plus', color: '#2563EB', bg: '#EFF6FF' },
@@ -93,7 +94,9 @@ const SalesKanbanPage = () => {
         </div>
 
         <div style={{ position: 'relative', width: 260 }}>
-          <span style={{ position: 'absolute', left: 10, top: 8, fontSize: 13, color: '#94A3B8' }}>🔍</span>
+          <span style={{ position: 'absolute', left: 10, top: 8, display: 'flex', alignItems: 'center', color: '#94A3B8' }}>
+            <LucideIcon name="Search" size={13} className="text-current" />
+          </span>
           <input
             type="text"
             placeholder="Search deal pipeline..."

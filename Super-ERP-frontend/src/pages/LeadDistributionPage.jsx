@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import API from '../services/api';
+import { Icon } from '../utils/iconMapper';
 
 const LeadDistributionPage = () => {
   const { user } = useAuth();
@@ -80,8 +81,18 @@ const LeadDistributionPage = () => {
                 </p>
               </div>
               <div>
-                <span className={`badge ${data.stats.isBalanced ? 'badge-qualified' : 'badge-new'}`} style={{ fontSize: 13, padding: '6px 16px' }}>
-                  {data.stats.isBalanced ? '✓ Balanced' : '⚠ Needs Balancing'}
+                <span className={`badge ${data.stats.isBalanced ? 'badge-qualified' : 'badge-new'}`} style={{ fontSize: 13, padding: '6px 16px', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  {data.stats.isBalanced ? (
+                    <>
+                      <Icon name="CheckCircle" size={14} className="icon-inline" />
+                      <span>Balanced</span>
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="AlertTriangle" size={14} className="icon-inline" />
+                      <span>Needs Balancing</span>
+                    </>
+                  )}
                 </span>
               </div>
             </div>
@@ -155,7 +166,10 @@ const LeadDistributionPage = () => {
 
           {/* Info Box */}
           <div className="card" style={{ marginTop: 20 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>📊 How Lead Distribution Works</h3>
+            <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Icon name="BarChart" size={16} className="icon-inline" />
+              <span>How Lead Distribution Works</span>
+            </h3>
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8 }}>
               When new leads are created without manual assignment, the system automatically uses a <strong>round-robin algorithm</strong> 
               to assign them to the agent with the fewest leads.

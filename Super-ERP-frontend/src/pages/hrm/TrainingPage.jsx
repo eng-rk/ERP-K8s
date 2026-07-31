@@ -2,6 +2,16 @@ import { useState, useEffect, useMemo } from 'react';
 import API from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { DEPARTMENTS } from '../../services/departmentJobs';
+import { Icon } from '../../utils/iconMapper';
+
+const getBadgeIcon = (status) => {
+  switch (status) {
+    case 'Completed': return 'Check';
+    case 'In Progress': return 'RefreshCw';
+    case 'Assigned': return 'Circle';
+    default: return 'Circle';
+  }
+};
 
 // Star rating input component
 const StarRatingInput = ({ value, onChange, max = 5 }) => (
@@ -47,6 +57,7 @@ const AUX_COLORS = {
   Break: '#6366F1',
   Coaching: '#3B82F6',
 };
+// eslint-disable-next-line no-unused-vars
 const AUX_ICONS = { Live: '🟢', Training: '🟡', 'Logged out': '🔴', Break: '🟣', Coaching: '🔵' };
 
 const TrainingPage = () => {
@@ -251,7 +262,7 @@ const TrainingPage = () => {
                 }}
               >
                 <span style={{ width: 10, height: 10, borderRadius: '50%', background: AUX_COLORS[st], flexShrink: 0, display: 'inline-block' }} />
-                {AUX_ICONS[st]} {st}
+                <span>{st}</span>
               </button>
             ))}
           </div>
@@ -454,19 +465,32 @@ const TrainingPage = () => {
                         </td>
                         <td>
                           <strong>{tr.topic}</strong>
-                          <div style={{ fontSize: 11, color: tr.type === 'Technical' ? '#818CF8' : '#6EE7B7' }}>
-                            {tr.type === 'Technical' ? '⚙ Technical' : '📋 HR / General'}
+                          <div style={{ fontSize: 11, color: tr.type === 'Technical' ? '#818CF8' : '#6EE7B7', display: 'flex', gap: 4, marginTop: 2 }}>
+                            {tr.type === 'Technical' ? (
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                <Icon name="Settings" size={11} className="icon-inline" />
+                                <span>Technical</span>
+                              </span>
+                            ) : (
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                <Icon name="FileText" size={11} className="icon-inline" />
+                                <span>HR / General</span>
+                              </span>
+                            )}
                           </div>
                           {tr.scheduledDate && (
-                            <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-                              📅 {new Date(tr.scheduledDate).toLocaleDateString()}
+                            <div style={{ fontSize: 10, color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                              <Icon name="Calendar" size={10} className="icon-inline" />
+                              <span>{new Date(tr.scheduledDate).toLocaleDateString()}</span>
                             </div>
                           )}
                         </td>
                         <td style={{ fontSize: 13 }}>{trainerName}</td>
                         <td>
                           <span style={{
-                            display: 'inline-block',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
                             padding: '3px 8px',
                             borderRadius: 12,
                             fontSize: 11,
@@ -475,7 +499,8 @@ const TrainingPage = () => {
                             color: badge.bg,
                             border: `1px solid ${badge.bg}44`,
                           }}>
-                            {badge.label}
+                            <Icon name={getBadgeIcon(tr.status)} size={11} className="icon-inline" />
+                            <span>{tr.status}</span>
                           </span>
                         </td>
                         <td>

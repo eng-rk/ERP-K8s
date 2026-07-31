@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import API from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { DEPARTMENTS } from '../../services/departmentJobs';
+import { Icon } from '../../utils/iconMapper';
 
 // --- Kanban Pipeline Column ---
 
@@ -40,8 +41,16 @@ const CandidateCard = ({ candidate, isTA, onMove, onOpenFeedback }) => {
       <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>
         {candidate.vacancyId?.title || 'Unknown Position'}
       </div>
-      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>✉ {candidate.email}</div>
-      {candidate.phone && <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>📞 {candidate.phone}</div>}
+      <div style={{ fontSize: 11, color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+        <Icon name="Mail" size={11} className="icon-inline" />
+        <span>{candidate.email}</span>
+      </div>
+      {candidate.phone && (
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <Icon name="Phone" size={11} className="icon-inline" />
+          <span>{candidate.phone}</span>
+        </div>
+      )}
       {lastNote && (
         <div
           style={{
@@ -53,9 +62,15 @@ const CandidateCard = ({ candidate, isTA, onMove, onOpenFeedback }) => {
             fontSize: 11,
             color: '#A5B4FC',
             lineHeight: 1.4,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4
           }}
         >
-          💬 {lastNote.note.length > 80 ? lastNote.note.slice(0, 80) + '…' : lastNote.note}
+          <div style={{ display: 'inline-flex', alignItems: 'flex-start', gap: 4 }}>
+            <Icon name="MessageSquare" size={11} className="icon-inline" style={{ marginTop: 2 }} />
+            <span>{lastNote.note.length > 80 ? lastNote.note.slice(0, 80) + '…' : lastNote.note}</span>
+          </div>
           <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
             — {lastNote.addedBy?.firstName} {lastNote.addedBy?.lastName}
           </div>
@@ -316,11 +331,31 @@ const TalentAcquisitionPage = () => {
         </div>
         {isTA && (
           <div style={{ display: 'flex', gap: 10 }}>
-            <button className="btn btn-secondary btn-sm" onClick={() => setShowVacancyForm((v) => !v)}>
-              {showVacancyForm ? '✕ Close' : '+ Post Vacancy'}
+            <button className="btn btn-secondary btn-sm" onClick={() => setShowVacancyForm((v) => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              {showVacancyForm ? (
+                <>
+                  <Icon name="X" size={11} className="icon-inline" />
+                  <span>Close</span>
+                </>
+              ) : (
+                <>
+                  <Icon name="Plus" size={11} className="icon-inline" />
+                  <span>Post Vacancy</span>
+                </>
+              )}
             </button>
-            <button className="btn btn-primary btn-sm" onClick={() => setShowCandForm((v) => !v)}>
-              {showCandForm ? '✕ Close' : '+ Add Candidate'}
+            <button className="btn btn-primary btn-sm" onClick={() => setShowCandForm((v) => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              {showCandForm ? (
+                <>
+                  <Icon name="X" size={11} className="icon-inline" />
+                  <span>Close</span>
+                </>
+              ) : (
+                <>
+                  <Icon name="Plus" size={11} className="icon-inline" />
+                  <span>Add Candidate</span>
+                </>
+              )}
             </button>
           </div>
         )}
@@ -445,16 +480,18 @@ const TalentAcquisitionPage = () => {
           <button
             onClick={() => setViewMode('kanban')}
             className={`btn ${viewMode === 'kanban' ? 'btn-primary' : 'btn-secondary'} btn-sm`}
-            style={{ fontSize: 12 }}
+            style={{ fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}
           >
-            ⬡ Kanban Board
+            <Icon name="LayoutGrid" size={12} className="icon-inline" />
+            <span>Kanban Board</span>
           </button>
           <button
             onClick={() => setViewMode('table')}
             className={`btn ${viewMode === 'table' ? 'btn-primary' : 'btn-secondary'} btn-sm`}
-            style={{ fontSize: 12 }}
+            style={{ fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}
           >
-            ≡ Table View
+            <Icon name="Table" size={12} className="icon-inline" />
+            <span>Table View</span>
           </button>
         </div>
         <select
