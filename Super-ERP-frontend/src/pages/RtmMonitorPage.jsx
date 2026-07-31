@@ -171,7 +171,7 @@ const RtmMonitorPage = () => {
   if (!isRTM) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 400, flexDirection: 'column', gap: 12 }}>
-        <span style={{ fontSize: 40 }}>🚫</span>
+        <span style={{ fontSize: 40 }}><Icon name="Ban" size={40} /></span>
         <span style={{ color: 'var(--text-muted)' }}>Access restricted to RTM Team Members.</span>
       </div>
     );

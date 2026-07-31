@@ -330,7 +330,7 @@ const UserProfilePage = () => {
                     <input
                       className="form-input"
                       type="password"
-                      placeholder={user?.smtpUser ? '🔒 Password saved — enter new one to change' : 'App password or SMTP password'}
+                      placeholder={user?.smtpUser ? 'Password saved — enter new one to change' : 'App password or SMTP password'}
                       value={form.smtpPass}
                       onChange={e => setForm(f => ({ ...f, smtpPass: e.target.value }))}
                     />
@@ -380,7 +380,17 @@ const UserProfilePage = () => {
                       }
                     }}
                   >
-                    {smtpTesting ? '⏳ Testing...' : '🔌 Test Connection'}
+                    {smtpTesting ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <Icon name="RefreshCw" size={11} className="icon-inline" />
+                        <span>Testing...</span>
+                      </span>
+                    ) : (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <Icon name="Zap" size={11} className="icon-inline" />
+                        <span>Test Connection</span>
+                      </span>
+                    )}
                   </button>
                   {!form.smtpHost && !user?.smtpUser && (
                     <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Fill in your SMTP settings above to test.</span>

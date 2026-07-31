@@ -345,7 +345,7 @@ const EmailsPage = () => {
                 <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border-color)' }}>
                   <input
                     className="form-input"
-                    placeholder="🔍 Search…"
+                    placeholder="Search…"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     style={{ fontSize: 12, padding: '7px 12px' }}

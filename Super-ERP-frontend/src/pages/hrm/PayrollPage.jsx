@@ -818,8 +818,9 @@ const PayrollPage = () => {
             </button>
           </div>
           {runType === 'Salary' && (
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>
-              ⚠️ Only one salary run is allowed per period. Bonus runs can be created anytime.
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <Icon name="AlertTriangle" size={11} className="icon-inline" />
+              <span>Only one salary run is allowed per period. Bonus runs can be created anytime.</span>
             </div>
           )}
           {runMsg.text && (

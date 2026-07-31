@@ -396,8 +396,9 @@ const TrainingPage = () => {
                 <input className="form-input" type="date" value={scheduledDate} onChange={(e) => setScheduledDate(e.target.value)} />
               </div>
               {trainingType === 'Technical' && (
-                <div style={{ padding: '8px 12px', borderRadius: 6, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)', fontSize: 12, color: '#818CF8' }}>
-                  💡 Supervisor will receive an internal email notification automatically.
+                <div style={{ padding: '8px 12px', borderRadius: 6, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)', fontSize: 12, color: '#818CF8', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <Icon name="Lightbulb" size={12} className="icon-inline" />
+                  <span>Supervisor will receive an internal email notification automatically.</span>
                 </div>
               )}
               <button type="submit" className="btn btn-primary" disabled={submitting}>
@@ -576,7 +577,7 @@ const TrainingPage = () => {
                 <label className="form-label" style={{ marginBottom: 8 }}>Performance Rating</label>
                 <StarRatingInput value={reportStars} onChange={setReportStars} />
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
-                  {reportStars === 0 ? 'No rating' : reportStars === 1 ? '⚠ Poor' : reportStars === 2 ? '📉 Below Average' : reportStars === 3 ? '✅ Satisfactory' : reportStars === 4 ? '👍 Good' : '🌟 Exceptional'}
+                  {reportStars === 0 ? 'No rating' : reportStars === 1 ? 'Poor' : reportStars === 2 ? 'Below Average' : reportStars === 3 ? 'Satisfactory' : reportStars === 4 ? 'Good' : 'Exceptional'}
                 </div>
               </div>
 
