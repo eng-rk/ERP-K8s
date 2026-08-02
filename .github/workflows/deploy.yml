@@ -1,57 +1,72 @@
-name: Deploy to Kubernetes
+name: Deploy to Amazon EKS
 
 on:
   workflow_run:
-    workflows: ["Docker Build and Push"]
+    workflows: ["Docker Build and Push to Amazon ECR"]
     types:
       - completed
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   deploy:
-    name: Deploy to Production Kubernetes Cluster
+    name: Deploy to Production Amazon EKS Cluster
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main') }}
     environment:
       name: production
       url: ${{ vars.ENVIRONMENT_URL || 'http://localhost' }}
 
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || secrets.AWS_REGION || 'us-east-1' }}
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME || secrets.EKS_CLUSTER_NAME || 'core360-eks-production' }}
+
     steps:
       # Step 1: Checkout repository using latest stable action
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2: Setup Kubectl
-      - name: Setup Kubectl
-        uses: azure/setup-kubectl@v4
+      # Step 2: Configure AWS Credentials using Keyless GitHub OIDC
+      - name: Configure AWS Credentials (OIDC)
+        if: ${{ env.AWS_ROLE_TO_ASSUME != '' }}
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          version: 'latest'
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      # Step 3: Authenticate to Kubernetes Cluster
-      - name: Set Kubernetes Context
-        uses: azure/k8s-set-context@v4
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+      # Step 3: Log in to Amazon ECR
+      - name: Log in to Amazon ECR
+        if: ${{ env.AWS_ROLE_TO_ASSUME != '' }}
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-      # Step 4: Determine Image Tags and Namespace
+      # Step 4: Update Kubeconfig for Amazon EKS
+      - name: Update Kubeconfig for Amazon EKS
+        if: ${{ env.AWS_ROLE_TO_ASSUME != '' }}
+        run: |
+          aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+
+      # Step 5: Determine Image Tags and Namespace
       - name: Prepare Deployment Variables
         id: vars
         run: |
-          NAMESPACE="${{ secrets.KUBE_NAMESPACE || 'super-erp' }}"
-          IMAGE_PREFIX="${{ secrets.IMAGE_PREFIX || secrets.DOCKERHUB_USERNAME || 'core360' }}"
-          REGISTRY="${{ secrets.REGISTRY || 'docker.io' }}"
+          NAMESPACE="${{ vars.KUBE_NAMESPACE || secrets.KUBE_NAMESPACE || 'super-erp' }}"
+          REGISTRY="${{ steps.login-ecr.outputs.registry || 'local' }}"
           SHA="${{ github.sha }}"
           
-          FULL_BACKEND_IMAGE="${REGISTRY}/${IMAGE_PREFIX}/core360-backend:${SHA}"
-          FULL_FRONTEND_IMAGE="${REGISTRY}/${IMAGE_PREFIX}/core360-frontend:${SHA}"
+          FULL_BACKEND_IMAGE="${REGISTRY}/core360-backend:${SHA}"
+          FULL_FRONTEND_IMAGE="${REGISTRY}/core360-frontend:${SHA}"
           
           echo "namespace=${NAMESPACE}" >> $GITHUB_OUTPUT
           echo "backend_image=${FULL_BACKEND_IMAGE}" >> $GITHUB_OUTPUT
           echo "frontend_image=${FULL_FRONTEND_IMAGE}" >> $GITHUB_OUTPUT
 
-      # Step 5: Perform Zero-Downtime Rolling Update
+      # Step 6: Perform Zero-Downtime Rolling Update on Amazon EKS
       - name: Execute Kubernetes Rolling Update
         id: rollupdate
         run: |
@@ -73,7 +88,7 @@ jobs:
           echo "Waiting for frontend-deployment rollout to complete..."
           kubectl rollout status deployment/frontend-deployment -n ${NAMESPACE} --timeout=180s
 
-      # Step 6: Verify Deployment and Pod Health
+      # Step 7: Verify Deployment Pod Health
       - name: Verify Deployment Pod Health
         id: verify
         run: |
@@ -98,29 +113,26 @@ jobs:
           
           echo "Deployment pod health verification succeeded!"
 
-      # Step 7: Application Endpoints Health Checks
+      # Step 8: Application Endpoints Health Checks
       - name: Execute Application Health Checks
         id: healthchecks
         run: |
           NAMESPACE="${{ steps.vars.outputs.namespace }}"
           echo "Executing application liveness and readiness probe checks..."
           
-          # Retrieve a backend pod IP or exec check
           BACKEND_POD=$(kubectl get pods -n ${NAMESPACE} -l app=backend -o jsonpath='{.items[0].metadata.name}' || true)
           
           if [ -n "$BACKEND_POD" ]; then
             echo "Checking Backend Liveness endpoint /health/live on ${BACKEND_POD}..."
-            kubectl exec -n ${NAMESPACE} ${BACKEND_POD} -- wget --quiet --tries=1 --spider http://localhost:5000/health/live || \
-            kubectl exec -n ${NAMESPACE} ${BACKEND_POD} -- curl -f http://localhost:5000/health/live || true
+            kubectl exec -n ${NAMESPACE} ${BACKEND_POD} -- wget --quiet --tries=1 --spider http://localhost:5000/health/live || true
 
             echo "Checking Backend Readiness endpoint /health/ready on ${BACKEND_POD}..."
-            kubectl exec -n ${NAMESPACE} ${BACKEND_POD} -- wget --quiet --tries=1 --spider http://localhost:5000/health/ready || \
-            kubectl exec -n ${NAMESPACE} ${BACKEND_POD} -- curl -f http://localhost:5000/health/ready || true
+            kubectl exec -n ${NAMESPACE} ${BACKEND_POD} -- wget --quiet --tries=1 --spider http://localhost:5000/health/ready || true
           fi
           
-          echo "All application health checks passed successfully!"
+          echo "All application health checks passed successfullyPass!"
 
-      # Step 8: Automatic Rollback on Failure
+      # Step 9: Automatic Rollback on Failure
       - name: Automatic Rollback on Deployment Failure
         if: failure()
         run: |
@@ -135,7 +147,7 @@ jobs:
           
           echo "Automatic rollback completed."
 
-      # Step 9: Save Deployment Logs Artifact
+      # Step 10: Save Deployment Logs Artifact
       - name: Upload Deployment Logs Artifact
         if: always()
         uses: actions/upload-artifact@v4

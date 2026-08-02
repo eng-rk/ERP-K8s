@@ -1,4 +1,4 @@
-name: Docker Build and Push
+name: Docker Build and Push to Amazon ECR
 
 on:
   push:
@@ -7,13 +7,17 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   docker-build-push:
-    name: Build & Push Docker Images
+    name: Build & Push Docker Images to Amazon ECR
     runs-on: ubuntu-latest
     env:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      AWS_REGION: ${{ vars.AWS_REGION || secrets.AWS_REGION || 'us-east-1' }}
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
 
     steps:
       # Step 1: Checkout repository using latest stable action
@@ -24,20 +28,26 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Step 3: Log in to Docker Hub (if secrets provided)
-      - name: Log in to Docker Hub
-        if: ${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}
-        uses: docker/login-action@v3
+      # Step 3: Configure AWS Credentials using Keyless GitHub OIDC
+      - name: Configure AWS Credentials (OIDC)
+        if: ${{ env.AWS_ROLE_TO_ASSUME != '' }}
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          username: ${{ env.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      # Step 4: Extract Docker Metadata (Tags & Labels)
+      # Step 4: Log in to Amazon ECR
+      - name: Log in to Amazon ECR
+        if: ${{ env.AWS_ROLE_TO_ASSUME != '' }}
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Step 5: Extract Docker Metadata for Backend & Frontend
       - name: Extract Docker metadata for Backend
         id: meta-backend
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.REGISTRY || 'docker.io' }}/${{ secrets.IMAGE_PREFIX || secrets.DOCKERHUB_USERNAME || 'core360' }}/core360-backend
+          images: ${{ steps.login-ecr.outputs.registry != '' && format('{0}/core360-backend', steps.login-ecr.outputs.registry) || 'core360-backend' }}
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=sha,format=long,prefix=
@@ -47,33 +57,33 @@ jobs:
         id: meta-frontend
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.REGISTRY || 'docker.io' }}/${{ secrets.IMAGE_PREFIX || secrets.DOCKERHUB_USERNAME || 'core360' }}/core360-frontend
+          images: ${{ steps.login-ecr.outputs.registry != '' && format('{0}/core360-frontend', steps.login-ecr.outputs.registry) || 'core360-frontend' }}
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=sha,format=long,prefix=
             type=sha,format=short,prefix=sha-
 
-      # Step 5: Build & Push Backend Docker Image
+      # Step 6: Build & Push Backend Docker Image
       - name: Build & Push Backend Docker Image
         uses: docker/build-push-action@v6
         with:
           context: ./Super-ERP-backend
           file: ./Super-ERP-backend/Dockerfile
-          push: ${{ github.ref == 'refs/heads/main' && env.DOCKERHUB_USERNAME != '' }}
+          push: ${{ github.ref == 'refs/heads/main' && env.AWS_ROLE_TO_ASSUME != '' }}
           tags: ${{ steps.meta-backend.outputs.tags }}
           labels: ${{ steps.meta-backend.outputs.labels }}
 
-      # Step 6: Build & Push Frontend Docker Image
+      # Step 7: Build & Push Frontend Docker Image
       - name: Build & Push Frontend Docker Image
         uses: docker/build-push-action@v6
         with:
           context: ./Super-ERP-frontend
           file: ./Super-ERP-frontend/Dockerfile
-          push: ${{ github.ref == 'refs/heads/main' && env.DOCKERHUB_USERNAME != '' }}
+          push: ${{ github.ref == 'refs/heads/main' && env.AWS_ROLE_TO_ASSUME != '' }}
           tags: ${{ steps.meta-frontend.outputs.tags }}
           labels: ${{ steps.meta-frontend.outputs.labels }}
 
-      # Step 7: Save Build Metadata Artifact
+      # Step 8: Save Build Metadata Artifact
       - name: Upload Docker Build Metadata Artifact
         uses: actions/upload-artifact@v4
         with:

@@ -1,0 +1,138 @@
+name: Core360 Infrastructure - Terraform CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/terraform.yaml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/terraform.yaml'
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: 'Target Terraform Environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - production
+      action:
+        description: 'Terraform Action to perform'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  terraform-ci:
+    name: Terraform Format, Validate & Plan
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || secrets.AWS_REGION || 'us-east-1' }}
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      TARGET_ENV: ${{ inputs.target_environment || 'dev' }}
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Setup HashiCorp Terraform CLI
+      - name: Setup HashiCorp Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.0"
+
+      # Step 3: Check Terraform HCL Code Formatting
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive terraform/
+
+      # Step 4: Configure AWS Credentials using Keyless GitHub OIDC
+      - name: Configure AWS Credentials (OIDC)
+        if: ${{ env.AWS_ROLE_TO_ASSUME != '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Step 5: Validate Target Environment Module
+      - name: Terraform Validate
+        working-directory: terraform/environments/${{ env.TARGET_ENV }}
+        run: |
+          terraform init -backend=false
+          terraform validate
+
+      # Step 6: Initialize Remote State and Generate Execution Plan
+      - name: Terraform Plan
+        if: ${{ env.AWS_ROLE_TO_ASSUME != '' }}
+        id: plan
+        working-directory: terraform/environments/${{ env.TARGET_ENV }}
+        run: |
+          terraform init
+          terraform plan -out=tfplan -var-file=terraform.tfvars
+
+      # Step 7: Upload Execution Plan Artifact
+      - name: Upload Terraform Plan Artifact
+        if: ${{ env.AWS_ROLE_TO_ASSUME != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ env.TARGET_ENV }}
+          path: terraform/environments/${{ env.TARGET_ENV }}/tfplan
+          retention-days: 7
+
+  terraform-apply:
+    name: Terraform Apply (Approved Plan)
+    runs-on: ubuntu-latest
+    needs: terraform-ci
+    if: ${{ github.ref == 'refs/heads/main' && (inputs.action == 'apply' || github.event_name == 'push') }}
+    environment:
+      name: production
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || secrets.AWS_REGION || 'us-east-1' }}
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      TARGET_ENV: ${{ inputs.target_environment || 'production' }}
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Setup HashiCorp Terraform CLI
+      - name: Setup HashiCorp Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.0"
+
+      # Step 3: Configure AWS Credentials using Keyless GitHub OIDC
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Step 4: Download Approved Plan Artifact
+      - name: Download Terraform Plan Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-${{ env.TARGET_ENV }}
+          path: terraform/environments/${{ env.TARGET_ENV }}
+
+      # Step 5: Apply Approved Plan
+      - name: Terraform Apply Plan
+        working-directory: terraform/environments/${{ env.TARGET_ENV }}
+        run: |
+          terraform init
+          terraform apply tfplan
