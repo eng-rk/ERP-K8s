@@ -1,26 +1,57 @@
-# Backup archives
-legacy-super-erp-backup.zip
-
-# Node modules & build outputs
+# Dependencies & Build Outputs
 node_modules/
 dist/
 build/
 coverage/
+dist-ssr/
 
-# Environment configurations
+# Local Environment Secrets & Overrides
 .env
 .env.*
-
-# Local Docker / DevOps overrides
+!.env.example
 docker-compose.override.yml
-*.log
 
-# Terraform files
+# Application Logs & Diagnostics
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# User Uploads Storage Data
+Super-ERP-backend/uploads/*
+!Super-ERP-backend/uploads/.gitkeep
+
+# Terraform State & Plan Artifacts
 .terraform/
 *.tfstate
 *.tfstate.*
+*.tfplan
+tfplan
+tfplan-*
 crash.log
+.terraform.lock.hcl
 
-# Operating System files
+# Helm Package Archives
+*.tgz
+.helm/
+
+# CI/CD & Security Output Logs
+deployment-logs/
+security-reports/
+
+# Backup Archives & Zip Files
+*.zip
+legacy-super-erp-backup*
+k8s-pre-migration-backup*
+
+# Editor & OS Metadata
 .DS_Store
 Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.sw?
+.gemini/
+.kilo/
+.agents/

@@ -1,36 +1,40 @@
-# Environment secrets
+# Local Environment Secrets
 .env
 .env.*
 .env*
+!.env.example
 
-# Dependencies (Do NOT ignore package-lock.json to ensure deterministic container builds)
+# Dependencies (package-lock.json remains committed)
 node_modules/
 /yarn.lock
 /pnpm-lock.yaml
 
-# Uploads (user files - ignored but dynamically created by ensureDirectories on boot)
-uploads/
+# User File Uploads (Ignored to avoid committing runtime storage)
+uploads/*
+!uploads/.gitkeep
 
-# Build output
+# Build & Test Outputs
 dist/
 build/
 coverage/
-
-# Vercel build output
-.vercel/
-.vercel
 
 # Logs
 logs/
 *.log
 npm-debug.log*
 
-# Terraform
+# Vercel / Cloud Outputs
+.vercel/
+
+# Terraform (if present)
 .terraform/
 *.tfstate
 *.tfstate.*
-crash.log
+*.tfplan
+tfplan
 
-# Operating System files
+# Editor & OS Metadata
 .DS_Store
 Thumbs.db
+.vscode/
+.idea/
