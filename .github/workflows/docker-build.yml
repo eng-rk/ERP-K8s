@@ -11,6 +11,9 @@ jobs:
   docker-build-push:
     name: Build & Push Docker Images
     runs-on: ubuntu-latest
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
     steps:
       # Step 1: Checkout repository using latest stable action
@@ -23,10 +26,10 @@ jobs:
 
       # Step 3: Log in to Docker Hub (if secrets provided)
       - name: Log in to Docker Hub
-        if: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
+        if: ${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # Step 4: Extract Docker Metadata (Tags & Labels)
@@ -56,7 +59,7 @@ jobs:
         with:
           context: ./Super-ERP-backend
           file: ./Super-ERP-backend/Dockerfile
-          push: ${{ github.ref == 'refs/heads/main' && secrets.DOCKERHUB_USERNAME != '' }}
+          push: ${{ github.ref == 'refs/heads/main' && env.DOCKERHUB_USERNAME != '' }}
           tags: ${{ steps.meta-backend.outputs.tags }}
           labels: ${{ steps.meta-backend.outputs.labels }}
 
@@ -66,7 +69,7 @@ jobs:
         with:
           context: ./Super-ERP-frontend
           file: ./Super-ERP-frontend/Dockerfile
-          push: ${{ github.ref == 'refs/heads/main' && secrets.DOCKERHUB_USERNAME != '' }}
+          push: ${{ github.ref == 'refs/heads/main' && env.DOCKERHUB_USERNAME != '' }}
           tags: ${{ steps.meta-frontend.outputs.tags }}
           labels: ${{ steps.meta-frontend.outputs.labels }}
 

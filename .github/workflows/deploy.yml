@@ -15,7 +15,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main') }}
     environment:
       name: production
-      url: ${{ secrets.ENVIRONMENT_URL || 'http://localhost' }}
+      url: ${{ vars.ENVIRONMENT_URL || 'http://localhost' }}
 
     steps:
       # Step 1: Checkout repository using latest stable action

@@ -21,7 +21,7 @@ To enable complete automated Docker Hub image publishing, Kubernetes zero-downti
 | :--- | :--- | :--- | :--- |
 | `KUBE_CONFIG` | Complete Base64-encoded or raw YAML `kubeconfig` file content for connecting to your target Kubernetes cluster. | `apiVersion: v1...` | **Yes** |
 | `KUBE_NAMESPACE` | Kubernetes target namespace for Core360 deployments (defaults to `super-erp`). | `super-erp` | Optional |
-| `ENVIRONMENT_URL` | Production environment URL for GitHub Environment badge and health check reporting. | `http://core360.example.com` | Optional |
+| `ENVIRONMENT_URL` | Production environment URL for GitHub Environment badge and health check reporting (Configure under **Variables**, not Secrets). | `http://core360.example.com` | Optional |
 
 ---
 
