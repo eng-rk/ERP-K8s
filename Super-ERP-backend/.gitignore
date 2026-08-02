@@ -23,9 +23,6 @@ logs/
 *.log
 npm-debug.log*
 
-# Vercel / Cloud Outputs
-.vercel/
-
 # Terraform (if present)
 .terraform/
 *.tfstate

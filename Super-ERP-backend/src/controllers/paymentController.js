@@ -7,9 +7,9 @@ const { sendRawEmail } = require('../services/emailService');
 const { syncOfferToInventory } = require('../services/offerOrderService');
 
 // Build an absolute URL for the public payment page on the FRONTEND app.
-// The payment page lives on the client (Vercel frontend), not the API, so we
+// The payment page lives on the client frontend app, not the API, so we
 // must use the client origin — not the API host — when generating the link.
-const CLIENT_URL = process.env.CLIENT_URL || 'https://super-erp-frontend.vercel.app';
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost';
 
 const buildPaymentLink = (token) => `${CLIENT_URL}/pay/${token}`;
 

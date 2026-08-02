@@ -20,9 +20,6 @@ pnpm-debug.log*
 !.env.example
 *.local
 
-# Vercel / Cloud Outputs
-.vercel/
-
 # Editor & OS Metadata
 .DS_Store
 Thumbs.db
