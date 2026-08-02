@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Icon } from '../components/Icons';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useAux } from '../context/AuxContext';
 
 const PROVIDER_PRESETS = {
   gmail: { label: 'Gmail / Google Workspace', host: 'smtp.gmail.com', port: 587, secure: false },
@@ -11,6 +12,7 @@ const PROVIDER_PRESETS = {
 
 const SettingsPage = () => {
   const { user, setBusinessModel } = useAuth();
+  const { fetchAuxConfig } = useAux() || {};
   const [activeTab, setActiveTab] = useState('general');
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -30,6 +32,10 @@ const SettingsPage = () => {
   const [companyName, setCompanyName] = useState('Super Enterprise Inc.');
   const [companyLogo, setCompanyLogo] = useState('');
   const [maintenanceMode, setMaintenanceMode] = useState(false);
+
+  // AUX settings state
+  const [auxList, setAuxList] = useState([]);
+  const [savingAux, setSavingAux] = useState(false);
 
   // Security settings
   const [sessionTimeout, setSessionTimeout] = useState('30d');
@@ -77,8 +83,19 @@ const SettingsPage = () => {
         console.error('Failed to load branding config:', err);
       }
     };
+    const fetchAuxSettings = async () => {
+      try {
+        const { data } = await API.get('/settings/aux');
+        if (data.success && Array.isArray(data.data)) {
+          setAuxList(data.data);
+        }
+      } catch (err) {
+        console.error('Failed to load AUX settings:', err);
+      }
+    };
     fetchSettings();
     fetchBranding();
+    fetchAuxSettings();
 
     const fetchBusinessModel = async () => {
       try {
@@ -176,6 +193,58 @@ const SettingsPage = () => {
     }
   };
 
+  const handleAuxChange = (index, field, value) => {
+    setAuxList((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: value };
+      return next;
+    });
+  };
+
+  const handleAddAux = () => {
+    setAuxList((prev) => [
+      ...prev,
+      { name: 'New State', color: '#3B82F6', order: prev.length + 1, active: true },
+    ]);
+  };
+
+  const handleRemoveAux = (index) => {
+    setAuxList((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleMoveAux = (index, direction) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= auxList.length) return;
+    setAuxList((prev) => {
+      const next = [...prev];
+      const temp = next[index];
+      next[index] = next[targetIndex];
+      next[targetIndex] = temp;
+      return next.map((item, i) => ({ ...item, order: i + 1 }));
+    });
+  };
+
+  const handleSaveAux = async (e) => {
+    if (e) e.preventDefault();
+    setSavingAux(true);
+    setErrorMsg('');
+    setSuccessMsg('');
+    try {
+      const payload = { auxSettings: auxList };
+      const { data } = await API.put('/settings/aux', payload);
+      if (data.success) {
+        setAuxList(data.data || []);
+        if (fetchAuxConfig) fetchAuxConfig();
+        setSuccessMsg('AUX Configuration saved successfully.');
+        setTimeout(() => setSuccessMsg(''), 4000);
+      }
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || 'Failed to save AUX settings');
+    } finally {
+      setSavingAux(false);
+    }
+  };
+
   return (
     <div>
       <div className="page-header">
@@ -259,6 +328,19 @@ const SettingsPage = () => {
             }}
           >
             Business Model
+          </button>
+          <button
+            onClick={() => setActiveTab('aux')}
+            className="sidebar-link"
+            style={{
+              background: activeTab === 'aux' ? 'rgba(37, 99, 235, 0.1)' : 'transparent',
+              color: activeTab === 'aux' ? 'var(--accent-primary)' : 'var(--text-primary)',
+              borderRadius: 'var(--radius-sm)',
+              fontWeight: activeTab === 'aux' ? 600 : 500,
+              padding: '10px 16px',
+            }}
+          >
+            AUX Configuration
           </button>
         </div>
 
@@ -640,6 +722,117 @@ const SettingsPage = () => {
                     style={{ width: 'auto', padding: '10px 28px' }}
                   >
                     {savingErp ? 'Saving…' : 'Save ERP URL'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'aux' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Icon name="clock" size={18} style={{ color: 'var(--accent-primary)' }} />
+                    AUX States & Status Configurations
+                  </h3>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={handleAddAux}
+                    style={{ width: 'auto' }}
+                  >
+                    + Add AUX State
+                  </button>
+                </div>
+
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20 }}>
+                  Configure dynamic agent AUX states, colors, display order, and active availability.
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
+                  {auxList.map((item, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        padding: '12px 16px',
+                        background: 'var(--bg-primary)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: 'var(--radius-sm)',
+                      }}
+                    >
+                      {/* Order Controls */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <button
+                          type="button"
+                          disabled={idx === 0}
+                          onClick={() => handleMoveAux(idx, -1)}
+                          style={{ border: 'none', background: 'none', cursor: idx === 0 ? 'default' : 'pointer', fontSize: 10, opacity: idx === 0 ? 0.3 : 0.8 }}
+                          title="Move Up"
+                        >
+                          ▲
+                        </button>
+                        <button
+                          type="button"
+                          disabled={idx === auxList.length - 1}
+                          onClick={() => handleMoveAux(idx, 1)}
+                          style={{ border: 'none', background: 'none', cursor: idx === auxList.length - 1 ? 'default' : 'pointer', fontSize: 10, opacity: idx === auxList.length - 1 ? 0.3 : 0.8 }}
+                          title="Move Down"
+                        >
+                          ▼
+                        </button>
+                      </div>
+
+                      {/* Color Picker */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <input
+                          type="color"
+                          value={item.color || '#6B7280'}
+                          onChange={(e) => handleAuxChange(idx, 'color', e.target.value)}
+                          style={{ width: 28, height: 28, border: 'none', background: 'none', cursor: 'pointer', borderRadius: 4 }}
+                          title="Pick Color"
+                        />
+                      </div>
+
+                      {/* State Name */}
+                      <input
+                        className="form-input"
+                        type="text"
+                        placeholder="State Name (e.g. Break, Lunch)"
+                        value={item.name}
+                        onChange={(e) => handleAuxChange(idx, 'name', e.target.value)}
+                        style={{ flex: 1 }}
+                        required
+                      />
+
+                      {/* Active Checkbox */}
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer', userSelect: 'none' }}>
+                        <input
+                          type="checkbox"
+                          checked={item.active !== false}
+                          onChange={(e) => handleAuxChange(idx, 'active', e.target.checked)}
+                        />
+                        <span>Active</span>
+                      </label>
+
+                      {/* Delete Action */}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAux(idx)}
+                        className="btn btn-danger btn-sm"
+                        style={{ padding: '4px 8px', width: 'auto' }}
+                        title="Remove State"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                  <button type="button" onClick={handleSaveAux} className="btn btn-primary" disabled={savingAux} style={{ width: 'auto', padding: '10px 32px' }}>
+                    {savingAux ? 'Saving AUX Config…' : 'Save AUX Configuration'}
                   </button>
                 </div>
               </div>

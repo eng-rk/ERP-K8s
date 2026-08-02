@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage';
 import LeadsPage from './pages/LeadsPage';
 import LeadDistributionPage from './pages/LeadDistributionPage';
 import LeadDetailsPage from './pages/LeadDetailsPage';
+import OfferDetailPage from './pages/OfferDetailPage';
 import BookingLookupPage from './pages/BookingLookupPage';
 import TicketsPage from './pages/TicketsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
@@ -133,6 +134,18 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <AppLayout>
               <LeadDetailsPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Protected: Offer Details */}
+      <Route
+        path="/offers/:id"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <OfferDetailPage />
             </AppLayout>
           </ProtectedRoute>
         }

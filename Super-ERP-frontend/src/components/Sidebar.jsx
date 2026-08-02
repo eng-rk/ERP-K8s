@@ -228,12 +228,10 @@ const Sidebar = () => {
       {/* Sidebar Header Brand */}
       <div className="sidebar-header">
         <div className="sidebar-brand">
-          <div className="sidebar-logo-icon">
-            <img src={logo} alt="Super ERP Logo" style={{ width: 36, height: 36, objectFit: 'contain' }} />
-          </div>
+          <img src={logo} alt="Core360 Logo" className="sidebar-logo-img" />
           <div className="sidebar-brand-meta">
-            <span className="sidebar-logo-text">Super ERP</span>
-            <span className="sidebar-brand-subtitle">Enterprise Workspace</span>
+            <span className="sidebar-logo-text">CORE360</span>
+            <span className="sidebar-brand-subtitle">ENTERPRISE WORKSPACE</span>
           </div>
         </div>
       </div>

@@ -19,8 +19,13 @@ const {
   getCurrencies,
   updateCurrencies,
   deleteCurrency,
+  getAuxSettings,
+  updateAuxSettings,
 } = require('../controllers/settingsController');
 const uploadBranding = require('../middleware/uploadBranding');
+
+router.get('/aux', protect, getAuxSettings);
+router.put('/aux', protect, updateAuxSettings);
 
 router.get('/business-model', protect, getBusinessModel);
 router.put('/business-model', protect, updateBusinessModel);

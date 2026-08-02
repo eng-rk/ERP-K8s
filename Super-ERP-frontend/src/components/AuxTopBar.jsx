@@ -23,7 +23,7 @@ const fmtMins = (mins) => {
 
 const AuxTopBar = () => {
   const { user } = useAuth();
-  const { currentAux, statusSince, todayStats, myPlan, changeAux } = useAux();
+  const { currentAux, statusSince, todayStats, myPlan, changeAux, activeAuxes, auxColors } = useAux();
   const [elapsed, setElapsed] = useState(0);
   const [openAux, setOpenAux] = useState(false);
   const [openQuickAdd, setOpenQuickAdd] = useState(false);
@@ -55,7 +55,9 @@ const AuxTopBar = () => {
 
   if (!user) return null;
 
-  const color = AUX_COLORS[currentAux] || '#6B7280';
+  const colorsMap = auxColors || AUX_COLORS;
+  const color = colorsMap[currentAux] || '#6B7280';
+  const auxStatusList = (activeAuxes && activeAuxes.length > 0) ? activeAuxes.map(a => a.name) : STATUSES;
 
   const todayFor = (status) =>
     (todayStats?.[status] || 0) + (currentAux === status ? Math.floor(elapsed / 60) : 0);
@@ -108,7 +110,7 @@ const AuxTopBar = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Omni Search (Leads, Inventory, Tickets, Staff)..."
+            placeholder="Search Core360 (Leads, Inventory, Tickets, Staff)..."
             style={{
               width: '100%',
               height: 32,
@@ -276,8 +278,8 @@ const AuxTopBar = () => {
               zIndex: 1000,
             }}
           >
-            {STATUSES.map((s) => {
-              const c = AUX_COLORS[s];
+            {auxStatusList.map((s) => {
+              const c = colorsMap[s] || '#6B7280';
               const active = currentAux === s;
               return (
                 <button

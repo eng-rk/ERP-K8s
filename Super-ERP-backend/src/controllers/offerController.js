@@ -1005,3 +1005,43 @@ exports.getOfferByLocator = async (req, res) => {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
+
+// @desc    Get offer by ID
+// @route   GET /api/offers/:id
+// @access  Private
+exports.getOfferById = async (req, res) => {
+  try {
+    const offerQuery = Offer.findById(req.params.id);
+    let offer = null;
+
+    if (offerQuery && typeof offerQuery.populate === 'function') {
+      offer = await offerQuery
+        .populate({
+          path: 'lead',
+          select: 'name email phone assignedTo referenceNumber'
+        });
+      
+      if (offer && typeof offer.populate === 'function') {
+        offer = await offer.populate('createdBy', 'firstName lastName role');
+      }
+    } else {
+      offer = await offerQuery;
+    }
+
+    if (!offer) {
+      return res.status(404).json({ message: 'Offer not found' });
+    }
+
+    const isAdmin = ['Super CRM Administrator', 'System Architect'].includes(req.user.role);
+    const isOwner = offer.createdBy && offer.createdBy._id.toString() === req.user._id.toString();
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: 'Not authorized to view this offer' });
+    }
+
+    res.json({ success: true, data: offer });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+

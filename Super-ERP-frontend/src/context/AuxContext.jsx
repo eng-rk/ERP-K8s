@@ -20,17 +20,34 @@ export const AUX_ICONS = {
   'Logged out': '🔴',
 };
 
+const DEFAULT_AUX_LIST = [
+  { name: 'Live', color: '#10B981', order: 1, active: true },
+  { name: 'Training', color: '#F59E0B', order: 2, active: true },
+  { name: 'Coaching', color: '#3B82F6', order: 3, active: true },
+  { name: 'Break', color: '#6366F1', order: 4, active: true },
+  { name: 'Logged out', color: '#EF4444', order: 5, active: true },
+];
+
 export const AuxProvider = ({ children }) => {
   const { user, updateCurrentUser } = useAuth();
   const [teamAux, setTeamAux] = useState([]);
   const [currentAux, setCurrentAux] = useState(user?.auxStatus || 'Logged out');
-  // When the current status started (used for live ticking timer)
   const [statusSince, setStatusSince] = useState(Date.now());
-  // Today's accumulated minutes per status (from server logs)
   const [todayStats, setTodayStats] = useState({ Live: 0, Break: 0, Training: 0, 'Logged out': 0 });
-  // My planned minutes per day from schedule
   const [myPlan, setMyPlan] = useState(null);
+  const [auxConfig, setAuxConfig] = useState(DEFAULT_AUX_LIST);
   const intervalRef = useRef(null);
+
+  const fetchAuxConfig = useCallback(async () => {
+    try {
+      const { data } = await API.get('/settings/aux');
+      if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+        setAuxConfig(data.data);
+      }
+    } catch {
+      // Fallback to existing defaults if API fails
+    }
+  }, []);
 
   const fetchTeam = useCallback(async () => {
     if (!user) return;
@@ -49,7 +66,6 @@ export const AuxProvider = ({ children }) => {
     } catch { /* silent */ }
   }, [user]);
 
-  // Fetch my schedule plan for current month
   const fetchMyPlan = useCallback(async () => {
     if (!user) return;
     try {
@@ -61,11 +77,12 @@ export const AuxProvider = ({ children }) => {
   }, [user]);
 
   useEffect(() => {
+    fetchAuxConfig();
     fetchTeam();
     fetchMyPlan();
     intervalRef.current = setInterval(fetchTeam, 30000);
     return () => clearInterval(intervalRef.current);
-  }, [fetchTeam, fetchMyPlan]);
+  }, [fetchAuxConfig, fetchTeam, fetchMyPlan]);
 
   const changeAux = async (status) => {
     try {
@@ -78,16 +95,35 @@ export const AuxProvider = ({ children }) => {
     } catch { /* silent */ }
   };
 
-  const counts = {
-    Live: teamAux.filter(u => u.auxStatus === 'Live').length,
-    Training: teamAux.filter(u => u.auxStatus === 'Training').length,
-    Break: teamAux.filter(u => u.auxStatus === 'Break').length,
-    Coaching: teamAux.filter(u => u.auxStatus === 'Coaching').length,
-    'Logged out': teamAux.filter(u => u.auxStatus === 'Logged out').length,
-  };
+  const activeAuxes = (auxConfig || DEFAULT_AUX_LIST)
+    .filter(a => a.active !== false)
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+  const auxColors = { ...AUX_COLORS };
+  (auxConfig || []).forEach(a => {
+    if (a.name && a.color) auxColors[a.name] = a.color;
+  });
+
+  const counts = {};
+  activeAuxes.forEach(a => {
+    counts[a.name] = teamAux.filter(u => u.auxStatus === a.name).length;
+  });
 
   return (
-    <AuxContext.Provider value={{ currentAux, statusSince, todayStats, myPlan, teamAux, counts, changeAux, fetchTeam }}>
+    <AuxContext.Provider value={{
+      currentAux,
+      statusSince,
+      todayStats,
+      myPlan,
+      teamAux,
+      counts,
+      auxConfig,
+      activeAuxes,
+      auxColors,
+      fetchAuxConfig,
+      changeAux,
+      fetchTeam
+    }}>
       {children}
     </AuxContext.Provider>
   );

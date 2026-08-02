@@ -7,6 +7,7 @@ import OfferVersionsModal from '../components/OfferVersionsModal';
 import { Icon } from '../components/Icons';
 import { Icon as LucideIcon } from '../utils/iconMapper';
 import EmailComposer from './EmailComposer';
+import { normalizeCurrencies, validateOfferPrice } from '../utils/offerHelpers';
 
 const statusBadge = (status) => {
   const map = {
@@ -36,6 +37,9 @@ const LeadDetailsPage = () => {
   
   // Lead Update
   const [updatingLead, setUpdatingLead] = useState(false);
+  const [currencies, setCurrencies] = useState([]);
+  const [defaultCurrency, setDefaultCurrency] = useState('USD');
+  const [pricingSettings, setPricingSettings] = useState({});
   
   // Modals & Forms
   const [showOfferModal, setShowOfferModal] = useState(false);
@@ -60,7 +64,7 @@ const LeadDetailsPage = () => {
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [newOffer, setNewOffer] = useState({
     title: '', description: '', offerType: 'Service', catalogProduct: '',
-    price: '', validUntil: '', notes: ''
+    price: '', validUntil: '', notes: '', currency: ''
   });
 
   // Image Uploads
@@ -109,6 +113,35 @@ const LeadDetailsPage = () => {
   }, [id]);
 
   useEffect(() => {
+    const fetchCurrenciesAndSettings = async () => {
+      let defCurr = 'USD';
+      try {
+        const currenciesRes = await API.get('/settings/currencies');
+        const normalized = normalizeCurrencies(currenciesRes.data.data?.currencies || []);
+        defCurr = currenciesRes.data.data?.defaultCurrency || normalized[0]?.code || 'USD';
+        
+        setCurrencies(normalized);
+        setDefaultCurrency(defCurr);
+        setNewOffer(p => ({ ...p, currency: defCurr }));
+      } catch (err) {
+        console.error('Failed to load currency settings:', err);
+        setCurrencies(normalizeCurrencies([{ code: 'USD', name: 'US Dollar', symbol: '$' }]));
+        setDefaultCurrency('USD');
+        setNewOffer(p => ({ ...p, currency: 'USD' }));
+      }
+
+      try {
+        const pricingRes = await API.get('/settings/pricing');
+        setPricingSettings(pricingRes.data.data || {});
+      } catch (err) {
+        console.log('Non-critical: Failed to load pricing configuration settings.', err.message);
+        setPricingSettings({});
+      }
+    };
+    fetchCurrenciesAndSettings();
+  }, []);
+
+  useEffect(() => {
     if (selectedTemplate) {
       const template = templates.find(t => t._id === selectedTemplate);
       if (template) {
@@ -140,16 +173,26 @@ const LeadDetailsPage = () => {
   const handleCreateOffer = async () => {
     if (!newOffer.title.trim()) return setError('Offer title is required');
     if (!newOffer.description.trim()) return setError('Offer description is required');
-    if (!newOffer.price || isNaN(parseFloat(newOffer.price))) return setError('Valid price is required');
+    
+    const priceError = validateOfferPrice(newOffer.price, newOffer.offerType, pricingSettings);
+    if (priceError) return setError(priceError);
+    
     if (!newOffer.validUntil) return setError('Valid until date is required');
     
     setSaving(true);
     setError('');
     try {
-      await API.post('/offers', { ...newOffer, lead: id, price: parseFloat(newOffer.price) });
+      const selectedCurrency = currencies.find(c => c.code === newOffer.currency) || null;
+      await API.post('/offers', { 
+        ...newOffer, 
+        lead: id, 
+        price: parseFloat(newOffer.price),
+        currency: newOffer.currency || defaultCurrency || 'USD',
+        currencySymbol: selectedCurrency?.symbol || ''
+      });
       await fetchData();
       setShowOfferModal(false);
-      setNewOffer({ title: '', description: '', offerType: 'Service', catalogProduct: '', price: '', validUntil: '', notes: '' });
+      setNewOffer({ title: '', description: '', offerType: 'Service', catalogProduct: '', price: '', validUntil: '', notes: '', currency: defaultCurrency });
       setSelectedTemplate('');
     } catch (err) {
       const msg = err.response?.data?.error || err.response?.data?.message || 'Failed to create offer';
@@ -396,7 +439,15 @@ const LeadDetailsPage = () => {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {offers.map(offer => (
-                <div key={offer._id} className="table-wrapper" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div 
+                  key={offer._id} 
+                  className="table-wrapper" 
+                  onClick={(e) => {
+                    if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input')) return;
+                    navigate(`/offers/${offer._id}`);
+                  }}
+                  style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16, cursor: 'pointer' }}
+                >
                   {/* Header Row */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
                     <div>
@@ -450,7 +501,7 @@ const LeadDetailsPage = () => {
                       )}
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent-primary)' }}>${offer.price.toLocaleString()}</div>
+                      <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent-primary)' }}>{offer.currencySymbol || '$'}{offer.price.toLocaleString()}</div>
                       <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Valid until {new Date(offer.validUntil).toLocaleDateString()}</div>
                     </div>
                   </div>
@@ -578,7 +629,14 @@ const LeadDetailsPage = () => {
                   <select
                     className="form-input"
                     value={newOffer.catalogProduct}
-                    onChange={e => setNewOffer(p => ({ ...p, catalogProduct: e.target.value }))}
+                    onChange={e => {
+                      const selectedProduct = products.find(p => p._id === e.target.value);
+                      setNewOffer(p => ({ 
+                        ...p, 
+                        catalogProduct: e.target.value, 
+                        price: selectedProduct ? selectedProduct.price.toString() : p.price 
+                      }));
+                    }}
                   >
                     <option value="">— Select a product —</option>
                     {products.map(product => (
@@ -597,10 +655,22 @@ const LeadDetailsPage = () => {
                 <textarea className="form-input" rows="3" placeholder="Describe what's included..." value={newOffer.description} onChange={e => setNewOffer(p => ({ ...p, description: e.target.value }))} />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
                 <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label">Price ($)</label>
+                  <label className="form-label">Price</label>
                   <input className="form-input" type="number" step="0.01" placeholder="0.00" value={newOffer.price} onChange={e => setNewOffer(p => ({ ...p, price: e.target.value }))} />
+                </div>
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label">Currency</label>
+                  <select
+                    className="form-input"
+                    value={newOffer.currency}
+                    onChange={e => setNewOffer(p => ({ ...p, currency: e.target.value }))}
+                  >
+                    {currencies.map(c => (
+                      <option key={c.code} value={c.code}>{c.code} - {c.name} ({c.symbol})</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label">Valid Until</label>

@@ -520,3 +520,63 @@ exports.deleteCurrency = async (req, res) => {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
+
+const DEFAULT_AUX_SETTINGS = [
+  { name: 'Live', color: '#10B981', order: 1, active: true },
+  { name: 'Training', color: '#F59E0B', order: 2, active: true },
+  { name: 'Coaching', color: '#3B82F6', order: 3, active: true },
+  { name: 'Break', color: '#6366F1', order: 4, active: true },
+  { name: 'Logged out', color: '#EF4444', order: 5, active: true },
+];
+
+// @desc    Get AUX configuration
+// @route   GET /api/settings/aux
+// @access  Private (All authenticated users)
+exports.getAuxSettings = async (req, res) => {
+  try {
+    const setting = await SystemSetting.findOne({ key: 'auxSettings' });
+    const auxSettings = Array.isArray(setting?.value) && setting.value.length > 0
+      ? setting.value
+      : DEFAULT_AUX_SETTINGS;
+    res.json({ success: true, data: auxSettings });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Save AUX configuration
+// @route   PUT /api/settings/aux
+// @access  Private (Super Admin / System Architect only)
+exports.updateAuxSettings = async (req, res) => {
+  try {
+    if (!['Super CRM Administrator', 'System Architect'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Access denied.' });
+    }
+
+    const { auxSettings } = req.body;
+    if (!Array.isArray(auxSettings)) {
+      return res.status(400).json({ message: 'auxSettings must be an array' });
+    }
+
+    const validated = auxSettings.map((item, index) => ({
+      name: String(item.name || '').trim(),
+      color: String(item.color || '#6B7280').trim(),
+      order: typeof item.order === 'number' ? item.order : index + 1,
+      active: item.active !== false
+    })).filter(item => item.name !== '');
+
+    if (validated.length === 0) {
+      return res.status(400).json({ message: 'At least one valid AUX state is required' });
+    }
+
+    const setting = await SystemSetting.findOneAndUpdate(
+      { key: 'auxSettings' },
+      { key: 'auxSettings', value: validated, updatedBy: req.user._id },
+      { new: true, upsert: true }
+    );
+
+    res.json({ success: true, message: 'AUX configuration saved.', data: setting.value });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};

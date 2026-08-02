@@ -25,8 +25,8 @@ const LoginPage = () => {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo">
-          <img src={logo} alt="Super ERP" style={{ height: 38 }} />
-          <span className="auth-logo-text">Super ERP</span>
+          <img src={logo} alt="CORE360" style={{ height: 38 }} />
+          <span className="auth-logo-text">CORE360</span>
         </div>
 
         <h1 className="auth-title">Welcome back</h1>
