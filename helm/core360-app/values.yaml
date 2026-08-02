@@ -1,0 +1,81 @@
+global:
+  environment: prod
+  namespace: super-erp
+
+backend:
+  replicaCount: 2
+  image:
+    repository: 123456789012.dkr.ecr.us-east-1.amazonaws.com/core360-backend
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 5000
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 80
+  livenessProbe:
+    path: /health/live
+    initialDelaySeconds: 15
+    periodSeconds: 10
+  readinessProbe:
+    path: /health/ready
+    initialDelaySeconds: 10
+    periodSeconds: 5
+
+frontend:
+  replicaCount: 2
+  image:
+    repository: 123456789012.dkr.ecr.us-east-1.amazonaws.com/core360-frontend
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 80
+  resources:
+    limits:
+      cpu: 250m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+mongodb:
+  enabled: true
+  image:
+    repository: mongo
+    tag: "6.0"
+  storage:
+    size: 10Gi
+    storageClassName: gp3
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+  hosts:
+    - host: core360.example.com
+      paths:
+        - path: /api
+          pathType: Prefix
+          backendService: backend-service
+          backendPort: 5000
+        - path: /uploads
+          pathType: Prefix
+          backendService: backend-service
+          backendPort: 5000
+        - path: /
+          pathType: Prefix
+          backendService: frontend-service
+          backendPort: 80

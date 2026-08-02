@@ -62,3 +62,14 @@ output "alb_dns_name" {
   description = "Application Load Balancer DNS Name"
   value       = module.alb.alb_dns_name
 }
+
+output "prometheus_workspace_id" {
+  description = "Amazon Managed Prometheus Workspace ID"
+  value       = module.prometheus_grafana.prometheus_workspace_id
+}
+
+output "grafana_endpoint" {
+  description = "Amazon Managed Grafana Workspace Endpoint URL"
+  value       = module.prometheus_grafana.grafana_endpoint
+}
+

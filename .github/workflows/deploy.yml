@@ -73,14 +73,24 @@ jobs:
           NAMESPACE="${{ steps.vars.outputs.namespace }}"
           BACKEND_IMAGE="${{ steps.vars.outputs.backend_image }}"
           FRONTEND_IMAGE="${{ steps.vars.outputs.frontend_image }}"
+          SHA="${{ github.sha }}"
           
-          echo "Updating backend-deployment to ${BACKEND_IMAGE} in namespace ${NAMESPACE}..."
-          kubectl set image deployment/backend-deployment backend=${BACKEND_IMAGE} -n ${NAMESPACE} || \
-          kubectl rollout restart deployment/backend-deployment -n ${NAMESPACE}
+          if command -v helm &> /dev/null && [ -d "./helm/core360-app" ]; then
+            echo "Deploying via Helm Chart ./helm/core360-app..."
+            helm upgrade --install core360 ./helm/core360-app/ \
+              --namespace ${NAMESPACE} \
+              --create-namespace \
+              --set backend.image.tag=${SHA} \
+              --set frontend.image.tag=${SHA}
+          else
+            echo "Updating backend-deployment to ${BACKEND_IMAGE} in namespace ${NAMESPACE}..."
+            kubectl set image deployment/backend-deployment backend=${BACKEND_IMAGE} -n ${NAMESPACE} || \
+            kubectl rollout restart deployment/backend-deployment -n ${NAMESPACE}
 
-          echo "Updating frontend-deployment to ${FRONTEND_IMAGE} in namespace ${NAMESPACE}..."
-          kubectl set image deployment/frontend-deployment frontend=${FRONTEND_IMAGE} -n ${NAMESPACE} || \
-          kubectl rollout restart deployment/frontend-deployment -n ${NAMESPACE}
+            echo "Updating frontend-deployment to ${FRONTEND_IMAGE} in namespace ${NAMESPACE}..."
+            kubectl set image deployment/frontend-deployment frontend=${FRONTEND_IMAGE} -n ${NAMESPACE} || \
+            kubectl rollout restart deployment/frontend-deployment -n ${NAMESPACE}
+          fi
 
           echo "Waiting for backend-deployment rollout to complete..."
           kubectl rollout status deployment/backend-deployment -n ${NAMESPACE} --timeout=180s

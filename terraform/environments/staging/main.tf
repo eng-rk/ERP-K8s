@@ -140,3 +140,15 @@ module "monitoring" {
   log_retention_days = 30
   tags               = local.common_tags
 }
+
+# Prometheus & Grafana Module
+module "prometheus_grafana" {
+  source            = "../../modules/prometheus-grafana"
+  project_name      = var.project_name
+  environment       = var.environment
+  kms_key_arn       = module.kms.key_arn
+  oidc_provider_arn = module.eks.oidc_provider_arn
+  oidc_provider_url = module.eks.oidc_provider_url
+  tags              = local.common_tags
+}
+
