@@ -1,0 +1,49 @@
+name: Security Audit
+
+# Workflow triggers: Weekly schedule (Sunday 00:00 UTC) and manual workflow_dispatch
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+jobs:
+  security-audit:
+    name: Security Vulnerability Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js LTS
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      # Step 3: Audit Backend Dependencies (Generate report, non-blocking on moderate)
+      - name: Run Backend Security Audit
+        continue-on-error: true
+        working-directory: Super-ERP-backend
+        run: |
+          mkdir -p ../security-reports
+          echo "=== Backend Security Audit Report ===" > ../security-reports/backend-audit.txt
+          npm audit >> ../security-reports/backend-audit.txt 2>&1 || true
+
+      # Step 4: Audit Frontend Dependencies (Generate report, non-blocking on moderate)
+      - name: Run Frontend Security Audit
+        continue-on-error: true
+        working-directory: Super-ERP-frontend
+        run: |
+          mkdir -p ../security-reports
+          echo "=== Frontend Security Audit Report ===" > ../security-reports/frontend-audit.txt
+          npm audit >> ../security-reports/frontend-audit.txt 2>&1 || true
+
+      # Step 5: Upload Security Audit Reports Artifact
+      - name: Upload Security Audit Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-reports
+          path: security-reports/
+          retention-days: 14

@@ -1,0 +1,40 @@
+name: Docker Build Verification
+
+# Workflow triggers: Runs on pull requests and pushes to main branch
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  docker-build:
+    name: Verify Docker Image Builds
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Docker Buildx engine
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Step 3: Build backend Docker image (verification only, no push)
+      - name: Build Backend Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./Super-ERP-backend
+          file: ./Super-ERP-backend/Dockerfile
+          push: false
+          tags: core360-backend:test
+
+      # Step 4: Build frontend Docker image (verification only, no push)
+      - name: Build Frontend Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./Super-ERP-frontend
+          file: ./Super-ERP-frontend/Dockerfile
+          push: false
+          tags: core360-frontend:test
