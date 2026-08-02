@@ -1,7 +1,8 @@
 name: Security Audit
 
-# Workflow triggers: Weekly schedule (Sunday 00:00 UTC) and manual workflow_dispatch
 on:
+  push:
+    branches: [ main ]
   schedule:
     - cron: '0 0 * * 0'
   workflow_dispatch:
@@ -12,17 +13,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout repository
+      # Step 1: Checkout repository using latest stable action
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2: Set up Node.js LTS
-      - name: Setup Node.js LTS
+      # Step 2: Set up Node.js 22
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
+          node-version: 22
 
-      # Step 3: Audit Backend Dependencies (Generate report, non-blocking on moderate)
+      # Step 3: Audit Backend Dependencies (Generate report)
       - name: Run Backend Security Audit
         continue-on-error: true
         working-directory: Super-ERP-backend
@@ -31,7 +32,7 @@ jobs:
           echo "=== Backend Security Audit Report ===" > ../security-reports/backend-audit.txt
           npm audit >> ../security-reports/backend-audit.txt 2>&1 || true
 
-      # Step 4: Audit Frontend Dependencies (Generate report, non-blocking on moderate)
+      # Step 4: Audit Frontend Dependencies (Generate report)
       - name: Run Frontend Security Audit
         continue-on-error: true
         working-directory: Super-ERP-frontend
