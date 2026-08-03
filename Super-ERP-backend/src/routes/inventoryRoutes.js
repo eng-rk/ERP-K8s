@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
+const { checkPermission } = require('../middleware/authorize');
 const {
   getInventoryItems, createInventoryItem, updateInventoryItem, deleteInventoryItem,
   getStockLevels, getStockTransactions, postGoodsReceipt, postGoodsIssue,
@@ -10,88 +11,69 @@ const {
   getLots, getSerials, approveAdjustment, rejectAdjustment,
   getReceivingOrders, getShipments, createTransfer, getTransfers,
   createAdjustment, getAdjustments, getCycleCounts, getPhysicalInventories,
-  // New enterprise features
   createPickTask, getPickTasks, getPickTask, updatePickTask, releasePickWave,
   getInventoryValuation, getABCClassification, getDeadStockReport,
   getReorderAlerts, getExpiryAlerts, getPutawaySuggestion
 } = require('../controllers/inventoryController');
 
-const INVENTORY_ROLES = [
-  'Super CRM Administrator', 'System Architect', 'Inventory Manager',
-  'Warehouse Manager', 'Receiving Clerk', 'Shipping Clerk',
-  'Warehouse Operator', 'Inventory Clerk', 'Quality Inspector'
-];
-
-const authorizeInventory = (req, res, next) => {
-  if (!INVENTORY_ROLES.includes(req.user?.role)) {
-    return res.status(403).json({ message: 'Not authorized for inventory operations' });
-  }
-  next();
-};
-
 router.use(protect);
-router.use(authorizeInventory);
 
-router.get('/items', getInventoryItems);
-router.post('/items', createInventoryItem);
-router.put('/items/:id', updateInventoryItem);
-router.delete('/items/:id', deleteInventoryItem);
+router.get('/items', checkPermission('wms.items.view'), getInventoryItems);
+router.post('/items', checkPermission('wms.items.create'), createInventoryItem);
+router.put('/items/:id', checkPermission('wms.items.edit'), updateInventoryItem);
+router.delete('/items/:id', checkPermission('wms.items.delete'), deleteInventoryItem);
 
-router.get('/stock', getStockLevels);
-router.get('/transactions', getStockTransactions);
-router.get('/kpis', getInventoryKPIs);
+router.get('/stock', checkPermission('wms.items.view'), getStockLevels);
+router.get('/transactions', checkPermission('wms.items.view'), getStockTransactions);
+router.get('/kpis', checkPermission('wms.items.view'), getInventoryKPIs);
 
-router.post('/receipts/goods/:id', postGoodsReceipt);
-router.post('/issues/goods/:id', postGoodsIssue);
-router.post('/transfers/:id/execute', createStockTransfer);
-router.post('/adjustments/:id/post', postInventoryAdjustment);
-router.post('/adjustments/:id/approve', approveAdjustment);
-router.post('/adjustments/:id/reject', rejectAdjustment);
+router.post('/receipts/goods/:id', checkPermission('wms.receiving.post_receipt'), postGoodsReceipt);
+router.post('/issues/goods/:id', checkPermission('wms.shipping.post_issue'), postGoodsIssue);
+router.post('/transfers/:id/execute', checkPermission('wms.transfers.execute'), createStockTransfer);
+router.post('/adjustments/:id/post', checkPermission('wms.adjustments.approve'), postInventoryAdjustment);
+router.post('/adjustments/:id/approve', checkPermission('wms.adjustments.approve'), approveAdjustment);
+router.post('/adjustments/:id/reject', checkPermission('wms.adjustments.reject'), rejectAdjustment);
 
-router.post('/receiving-orders', createReceivingOrder);
-router.put('/receiving-orders/:id', updateReceivingOrder);
-router.get('/receiving-orders', getReceivingOrders);
+router.post('/receiving-orders', checkPermission('wms.receiving.create_order'), createReceivingOrder);
+router.put('/receiving-orders/:id', checkPermission('wms.receiving.verify_goods'), updateReceivingOrder);
+router.get('/receiving-orders', checkPermission('wms.receiving.view'), getReceivingOrders);
 
-router.post('/shipments', createShipment);
-router.get('/shipments', getShipments);
-router.post('/returns', createReturnOrder);
+router.post('/shipments', checkPermission('wms.shipping.create_wave'), createShipment);
+router.get('/shipments', checkPermission('wms.shipping.view'), getShipments);
+router.post('/returns', checkPermission('wms.receiving.create_order'), createReturnOrder);
 
-router.post('/transfers', createTransfer);
-router.post('/transfers/:id/execute', createStockTransfer);
-router.get('/transfers', getTransfers);
+router.post('/transfers', checkPermission('wms.transfers.request'), createTransfer);
+router.get('/transfers', checkPermission('wms.items.view'), getTransfers);
 
-router.post('/adjustments', createAdjustment);
-router.post('/adjustments/:id/post', postInventoryAdjustment);
-router.post('/adjustments/:id/approve', approveAdjustment);
-router.post('/adjustments/:id/reject', rejectAdjustment);
-router.get('/adjustments', getAdjustments);
+router.post('/adjustments', checkPermission('wms.adjustments.create_request'), createAdjustment);
+router.get('/adjustments', checkPermission('wms.adjustments.view'), getAdjustments);
 
-router.post('/cycle-counts', createCycleCount);
-router.get('/cycle-counts', getCycleCounts);
+router.post('/cycle-counts', checkPermission('wms.audits.cycle_count'), createCycleCount);
+router.get('/cycle-counts', checkPermission('wms.items.view'), getCycleCounts);
 
-router.post('/physical-inventories', createPhysicalInventory);
-router.get('/physical-inventories', getPhysicalInventories);
+router.post('/physical-inventories', checkPermission('wms.audits.physical_inventory'), createPhysicalInventory);
+router.get('/physical-inventories', checkPermission('wms.items.view'), getPhysicalInventories);
 
-router.get('/warehouses', getWarehouses);
-router.post('/warehouses', createWarehouse);
-router.put('/warehouses/:id', updateWarehouse);
+router.get('/warehouses', checkPermission('wms.items.view'), getWarehouses);
+router.post('/warehouses', checkPermission('wms.items.create'), createWarehouse);
+router.put('/warehouses/:id', checkPermission('wms.items.edit'), updateWarehouse);
 
-router.get('/lots', getLots);
-router.get('/serials', getSerials);
+router.get('/lots', checkPermission('wms.items.view'), getLots);
+router.get('/serials', checkPermission('wms.items.view'), getSerials);
 
 // ─── Pick Tasks ──────────────────────────────────────────────────────────────
-router.post('/pick-tasks', createPickTask);
-router.get('/pick-tasks', getPickTasks);
-router.get('/pick-tasks/:id', getPickTask);
-router.put('/pick-tasks/:id', updatePickTask);
-router.post('/pick-wave/release', releasePickWave);
+router.post('/pick-tasks', checkPermission('wms.shipping.create_wave'), createPickTask);
+router.get('/pick-tasks', checkPermission('wms.shipping.view'), getPickTasks);
+router.get('/pick-tasks/:id', checkPermission('wms.shipping.view'), getPickTask);
+router.put('/pick-tasks/:id', checkPermission('wms.shipping.assign_picker'), updatePickTask);
+router.post('/pick-wave/release', checkPermission('wms.shipping.create_wave'), releasePickWave);
 
 // ─── Inventory Intelligence ──────────────────────────────────────────────────
-router.get('/reports/valuation', getInventoryValuation);
-router.get('/reports/abc', getABCClassification);
-router.get('/reports/dead-stock', getDeadStockReport);
-router.get('/alerts/reorder', getReorderAlerts);
-router.get('/alerts/expiry', getExpiryAlerts);
-router.get('/putaway/suggest', getPutawaySuggestion);
+router.get('/reports/valuation', checkPermission('wms.items.view'), getInventoryValuation);
+router.get('/reports/abc', checkPermission('wms.items.view'), getABCClassification);
+router.get('/reports/dead-stock', checkPermission('wms.items.view'), getDeadStockReport);
+router.get('/alerts/reorder', checkPermission('wms.items.view'), getReorderAlerts);
+router.get('/alerts/expiry', checkPermission('wms.items.view'), getExpiryAlerts);
+router.get('/putaway/suggest', checkPermission('wms.items.view'), getPutawaySuggestion);
 
 module.exports = router;

@@ -2,16 +2,11 @@ const express = require('express');
 const router = express.Router();
 const { getCampaigns, createCampaign, updateCampaign, deleteCampaign } = require('../controllers/campaignController');
 const { protect } = require('../middleware/auth');
-const { authorizeRoles } = require('../middleware/rbac');
+const { checkPermission } = require('../middleware/authorize');
 
-const MARKETING_ROLES = [
-  'Super CRM Administrator', 'Marketing Specialist',
-  'Marketing Manager', 'Executive User', 'Business Analyst', 'System Architect'
-];
-
-router.get('/', protect, authorizeRoles(...MARKETING_ROLES), getCampaigns);
-router.post('/', protect, authorizeRoles('Super CRM Administrator', 'Marketing Specialist', 'Marketing Manager', 'System Architect'), createCampaign);
-router.put('/:id', protect, authorizeRoles('Super CRM Administrator', 'Marketing Specialist', 'Marketing Manager', 'System Architect'), updateCampaign);
-router.delete('/:id', protect, authorizeRoles('Super CRM Administrator', 'Marketing Manager', 'System Architect'), deleteCampaign);
+router.get('/', protect, checkPermission('marketing.campaigns.view'), getCampaigns);
+router.post('/', protect, checkPermission('marketing.campaigns.create'), createCampaign);
+router.put('/:id', protect, checkPermission('marketing.campaigns.create'), updateCampaign);
+router.delete('/:id', protect, checkPermission('marketing.campaigns.create'), deleteCampaign);
 
 module.exports = router;

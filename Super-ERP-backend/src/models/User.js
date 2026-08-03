@@ -78,6 +78,28 @@ const userSchema = new mongoose.Schema({
     canManageUsers: { type: Boolean, default: false },
     customPermissions: { type: mongoose.Schema.Types.Mixed, default: {} }
   },
+  roles: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Role'
+  }],
+  customPermissionClaims: [{
+    permissionId: { type: String, required: true },
+    scope: {
+      type: String,
+      enum: ['SELF', 'TEAM', 'DEPARTMENT', 'BRANCH', 'COMPANY', 'GLOBAL'],
+      default: 'COMPANY'
+    },
+    granted: { type: Boolean, default: true }
+  }],
+  scopeContext: {
+    companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', default: null },
+    branchId: { type: String, default: null },
+    departmentId: { type: String, default: null },
+    teamId: { type: String, default: null }
+  },
+  effectivePermissionHash: { type: String, default: null },
+  effectivePermissionVersion: { type: Number, default: 1 },
+  permissionsCompiledAt: { type: Date, default: null },
   isActive: {
     type: Boolean,
     default: true

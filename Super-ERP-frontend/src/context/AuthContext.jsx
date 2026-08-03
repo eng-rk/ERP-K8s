@@ -19,9 +19,19 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const { data } = await API.post('/auth/login', { email, password });
-      localStorage.setItem('crmUser', JSON.stringify(data));
-      setUser(data);
-      return data;
+      
+      // Ensure user object has normalized permission fields
+      const userPayload = {
+        ...data,
+        roles: data.roles || [],
+        customPermissionClaims: data.customPermissionClaims || [],
+        effectivePermissions: data.effectivePermissions || {},
+        permissionVersion: data.permissionVersion || 1
+      };
+
+      localStorage.setItem('crmUser', JSON.stringify(userPayload));
+      setUser(userPayload);
+      return userPayload;
     } catch (err) {
       const msg = err.response?.data?.message || 'Login failed';
       setError(msg);
@@ -42,16 +52,74 @@ export const AuthProvider = ({ children }) => {
     setUser(merged);
   };
 
-  // Persist the Super Admin's chosen business model (service | product | both)
-  // and onboarding state to both context and localStorage.
   const setBusinessModel = (businessModel, onboarded = true) => {
     updateCurrentUser({ businessModel, onboarded });
+  };
+
+  /**
+   * Helper: Check if current user possesses a specific permission claim
+   */
+  const hasPermission = (permissionId) => {
+    if (!user) return false;
+
+    // Super Admin & System Architect Root Bypass
+    if (user.role === 'Super CRM Administrator' || user.role === 'System Architect') {
+      return true;
+    }
+
+    // Check effectivePermissions object map if present
+    if (user.effectivePermissions && user.effectivePermissions[permissionId]) {
+      const claim = user.effectivePermissions[permissionId];
+      return claim.granted === true && !claim.isExplicitDeny;
+    }
+
+    // Fallback: Check boolean flags on legacy permissions object
+    if (user.permissions) {
+      if (permissionId === 'crm.leads.view' && user.permissions.canViewLeads) return true;
+      if (permissionId === 'crm.leads.edit' && user.permissions.canEditLeads) return true;
+      if (permissionId === 'crm.leads.delete' && user.permissions.canDeleteLeads) return true;
+      if (permissionId === 'tickets.desk.view' && user.permissions.canViewTickets) return true;
+      if (permissionId === 'tickets.desk.edit' && user.permissions.canEditTickets) return true;
+      if (permissionId === 'tickets.desk.delete' && user.permissions.canDeleteTickets) return true;
+      if (permissionId === 'marketing.campaigns.view' && user.permissions.canManageCampaigns) return true;
+      if (permissionId === 'iam.users.view' && user.permissions.canManageUsers) return true;
+    }
+
+    return false;
+  };
+
+  /**
+   * Helper: Check if user has AT LEAST ONE of the listed permissions
+   */
+  const hasAnyPermission = (permissionIds = []) => {
+    if (!permissionIds || permissionIds.length === 0) return true;
+    return permissionIds.some(permId => hasPermission(permId));
+  };
+
+  /**
+   * Helper: Check if user has ALL of the listed permissions
+   */
+  const hasAllPermissions = (permissionIds = []) => {
+    if (!permissionIds || permissionIds.length === 0) return true;
+    return permissionIds.every(permId => hasPermission(permId));
   };
 
   const clearError = () => setError(null);
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, logout, updateCurrentUser, setBusinessModel, clearError }}>
+    <AuthContext.Provider value={{
+      user,
+      loading,
+      error,
+      login,
+      logout,
+      updateCurrentUser,
+      setBusinessModel,
+      clearError,
+      hasPermission,
+      hasAnyPermission,
+      hasAllPermissions
+    }}>
       {children}
     </AuthContext.Provider>
   );

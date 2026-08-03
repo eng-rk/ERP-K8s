@@ -97,8 +97,10 @@ const bookingRoutes = require('./routes/bookingRoutes');
 const productRoutes = require('./routes/productRoutes');
 const inventoryRoutes = require('./routes/inventoryRoutes');
 const templateRoutes = require('./routes/templateRoutes');
+const permissionRoutes = require('./routes/permissionRoutes');
 
 app.use('/api/auth', authRoutes);
+app.use('/api/iam', permissionRoutes);
 app.use('/api/webhooks', webhookRoutes);
 app.use('/api/leads', leadRoutes);
 app.use('/api/tickets', ticketRoutes);

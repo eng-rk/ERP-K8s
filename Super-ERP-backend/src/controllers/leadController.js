@@ -88,43 +88,40 @@ exports.getLeadDistribution = async (req, res) => {
   }
 };
 
-// @desc    Get leads (scoped by role)
+const { expandScope } = require('../services/scopeResolver');
+
+// @desc    Get leads (scoped by role & ABAC permissionScope)
 // @route   GET /api/leads
 // @access  Private
 exports.getLeads = async (req, res) => {
   try {
     let leads;
+    const scope = req.permissionScope || (ADMIN_ROLES.includes(req.user.role) ? 'GLOBAL' : 'SELF');
 
-    if (ADMIN_ROLES.includes(req.user.role)) {
-      // Admin sees all leads, populated with agent + their supervisor
+    if (scope === 'GLOBAL' || ADMIN_ROLES.includes(req.user.role)) {
+      // Admin / Global Scope sees all leads
       leads = await Lead.find()
         .populate({ path: 'assignedTo', select: 'firstName lastName email role supervisor', populate: { path: 'supervisor', select: 'firstName lastName' } })
         .populate('campaign', 'name platform')
         .sort({ createdAt: -1 });
 
-    } else if (MANAGER_ROLES.includes(req.user.role)) {
-      // Manager sees leads assigned to agents under their supervision
-      const teamAgents = await User.find({ supervisor: req.user._id, role: 'Sales Agent' }).select('_id');
+    } else if (scope === 'DEPARTMENT' || scope === 'TEAM' || MANAGER_ROLES.includes(req.user.role)) {
+      // Manager / Team Scope sees leads assigned to agents under their supervision or team
+      const teamAgents = await User.find({ supervisor: req.user._id }).select('_id');
       const agentIds = teamAgents.map(a => a._id);
+      agentIds.push(req.user._id);
+
       leads = await Lead.find({ assignedTo: { $in: agentIds } })
         .populate({ path: 'assignedTo', select: 'firstName lastName email role' })
         .populate('campaign', 'name platform')
         .sort({ createdAt: -1 });
 
-    } else if (req.user.role === 'Sales Agent') {
-      // Agent sees only their own leads
-      leads = await Lead.find({ assignedTo: req.user._id })
-        .populate('campaign', 'name platform')
-        .sort({ createdAt: -1 });
-
-    } else if (['Executive User', 'Business Analyst'].includes(req.user.role)) {
-      leads = await Lead.find()
-        .populate({ path: 'assignedTo', select: 'firstName lastName email role' })
-        .populate('campaign', 'name platform')
-        .sort({ createdAt: -1 });
-
     } else {
-      return res.status(403).json({ message: 'Not authorized to view leads' });
+      // SELF Scope sees only their own assigned leads
+      const { predicate } = expandScope('SELF', req.user);
+      leads = await Lead.find({ assignedTo: predicate.employeeId || req.user._id })
+        .populate('campaign', 'name platform')
+        .sort({ createdAt: -1 });
     }
 
     res.status(200).json({ success: true, count: leads.length, data: leads });

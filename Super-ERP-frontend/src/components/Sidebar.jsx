@@ -161,7 +161,7 @@ const WORKSPACE_NAV_ITEMS = [
 ];
 
 const Sidebar = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, hasAnyPermission, hasPermission } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -194,7 +194,16 @@ const Sidebar = () => {
   };
 
   const canSee = (item) => {
-    if (item.roles && !item.roles.includes(user?.role)) return false;
+    // 1. Permission-based evaluation
+    if (item.permissions && Array.isArray(item.permissions) && item.permissions.length > 0) {
+      if (!hasAnyPermission(item.permissions)) return false;
+    }
+    // 2. Legacy role-based evaluation (fallback)
+    else if (item.roles && Array.isArray(item.roles) && item.roles.length > 0) {
+      if (!item.roles.includes(user?.role)) return false;
+    }
+
+    // 3. Business model compatibility evaluation
     if (item.businessModel) {
       const bm = user?.businessModel || 'service';
       if (!item.businessModel.includes(bm)) return false;
@@ -206,11 +215,11 @@ const Sidebar = () => {
   const isInventoryActive = useMatch('/inventory') || useMatch('/inventory/*');
   const isSupplyChainActive = useMatch('/supply-chain') || useMatch('/supply-chain/*');
 
-  const isSuperAdmin = user?.role === 'Super CRM Administrator';
-  const showCRM = isSuperAdmin || CRM_ROLES.includes(user?.role);
-  const showHRM = isSuperAdmin || HRM_ROLES.includes(user?.role);
+  const isSuperAdmin = user?.role === 'Super CRM Administrator' || user?.role === 'System Architect';
+  const showCRM = isSuperAdmin || CRM_ROLES.includes(user?.role) || hasPermission('crm.leads.view');
+  const showHRM = isSuperAdmin || HRM_ROLES.includes(user?.role) || hasPermission('hrm.staff.view_list');
   const bm = user?.businessModel || 'service';
-  const showERP = ['product', 'both'].includes(bm);
+  const showERP = ['product', 'both'].includes(bm) || hasPermission('wms.items.view');
 
   const initials = user
     ? `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase()
@@ -218,10 +227,10 @@ const Sidebar = () => {
 
   // Filtered lists for counter badges
   const filteredCrmItems = CRM_NAV_ITEMS.filter(canSee);
-  const filteredInventoryItems = INVENTORY_SUB_ITEMS.filter((sub) => !sub.roles || sub.roles.includes(user?.role));
-  const filteredSupplyChainItems = SUPPLY_CHAIN_SUB_ITEMS;
+  const filteredInventoryItems = INVENTORY_SUB_ITEMS.filter(canSee);
+  const filteredSupplyChainItems = SUPPLY_CHAIN_SUB_ITEMS.filter(canSee);
   const filteredHrmItems = HRM_NAV_ITEMS.filter(canSee);
-  const filteredWorkspaceItems = WORKSPACE_NAV_ITEMS;
+  const filteredWorkspaceItems = WORKSPACE_NAV_ITEMS.filter(canSee);
 
   return (
     <aside className="sidebar" aria-label="Workspace navigation">

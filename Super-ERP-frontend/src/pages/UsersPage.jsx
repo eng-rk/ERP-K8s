@@ -135,6 +135,7 @@ const UsersPage = () => {
                 <th>Email (SMTP)</th>
                 <th>Permissions Enabled</th>
                 <th>Joined</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -196,6 +197,17 @@ const UsersPage = () => {
                     </td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '12px' }}>
                       {new Date(user.createdAt || Date.now()).toLocaleDateString()}
+                    </td>
+                    <td onClick={e => e.stopPropagation()}>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: 11, padding: '4px 8px', display: 'flex', alignItems: 'center', gap: 4 }}
+                        onClick={() => navigate(`/users/${user._id}`, { state: { activeTab: 'permissions' } })}
+                        title="Manage Enterprise Permissions Matrix"
+                      >
+                        <LucideIcon name="Shield" size={12} className="icon-inline" />
+                        <span>Permissions</span>
+                      </button>
                     </td>
                   </tr>
                 );

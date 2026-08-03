@@ -241,9 +241,25 @@ exports.updateNetSalaryOnly = async (req, res) => {
   }
 };
 
+const { expandScope } = require('../services/scopeResolver');
+
 exports.getContracts = async (req, res) => {
   try {
-    const contracts = await Contract.find()
+    const scope = req.permissionScope || 'COMPANY';
+    let query = {};
+
+    if (scope === 'SELF') {
+      const { predicate } = expandScope('SELF', req.user);
+      query = { employeeId: predicate.employeeId || req.user._id };
+    } else if (scope === 'TEAM' || scope === 'DEPARTMENT') {
+      const department = req.user.department;
+      if (department) {
+        const deptUsers = await User.find({ department }).select('_id');
+        query = { employeeId: { $in: deptUsers.map(u => u._id) } };
+      }
+    }
+
+    const contracts = await Contract.find(query)
       .populate('employeeId', 'firstName lastName email role department')
       .populate('salaryHistory.changedBy', 'firstName lastName role');
     res.json({ success: true, data: contracts });
