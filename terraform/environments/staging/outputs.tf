@@ -54,6 +54,6 @@ output "documentdb_endpoint" {
 }
 
 output "elasticache_endpoint" {
-  description = "ElastiCache Redis Endpoint"
-  value       = module.elasticache.endpoint
+  description = "ElastiCache Redis Primary Endpoint"
+  value       = module.elasticache.replication_group_primary_endpoint_address
 }
