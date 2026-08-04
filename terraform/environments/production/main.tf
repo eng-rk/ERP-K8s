@@ -199,8 +199,8 @@ module "elasticache" {
   parameter_group_name = "default.redis7"
   port                 = 6379
 
-  vpc_id  = module.vpc.vpc_id
-  subnets = module.vpc.database_subnets
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.database_subnets
 
   tags = local.common_tags
 }
