@@ -137,7 +137,7 @@ const userSchema = new mongoose.Schema({
   },
   shift: {
     type: String,
-    default: 'Day Shift (09:00 - 17:00)'
+    default: 'Normal Shift (09:00 - 18:00)'
   },
   weeklyOffDays: {
     type: [String],

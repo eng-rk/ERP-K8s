@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { NavLink, useNavigate, useMatch, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import API from '../services/api';
 import logo from '../assets/logo.png';
 import { useAuth } from '../context/AuthContext';
@@ -218,9 +218,9 @@ const Sidebar = () => {
     return true;
   };
 
-  const isUserProfile = useMatch('/users/:id');
-  const isInventoryActive = useMatch('/inventory') || useMatch('/inventory/*');
-  const isSupplyChainActive = useMatch('/supply-chain') || useMatch('/supply-chain/*');
+  const isUserProfile = location.pathname.startsWith('/users/') && location.pathname !== '/users';
+  const isInventoryActive = location.pathname.startsWith('/inventory');
+  const isSupplyChainActive = location.pathname.startsWith('/supply-chain');
 
   const isSuperAdmin = user?.role === 'Super CRM Administrator' || user?.role === 'System Architect';
   const showCRM = isSuperAdmin || CRM_ROLES.includes(user?.role) || hasPermission('crm.leads.view');

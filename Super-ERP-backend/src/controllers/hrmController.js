@@ -603,7 +603,11 @@ exports.getDetailedSchedule = async (req, res) => {
 
 exports.updateDetailedSchedule = async (req, res) => {
   try {
-    const { employeeId, month, defaultShift, defaultOffDays, weeklyOverrides, dailyOverrides } = req.body;
+    const {
+      employeeId, month, defaultShift, defaultOffDays,
+      weeklyOverrides, dailyOverrides,
+      defaultLiveTarget, defaultBreakTarget, defaultTrainingTarget, defaultCoachingTarget
+    } = req.body;
 
     const isHR = ['HRM System Administrator', 'HR Manager', 'Super CRM Administrator'].includes(req.user.role);
     if (!isHR) {
@@ -617,6 +621,11 @@ exports.updateDetailedSchedule = async (req, res) => {
 
     if (defaultShift !== undefined) schedule.defaultShift = defaultShift;
     if (defaultOffDays !== undefined) schedule.defaultOffDays = defaultOffDays;
+    if (defaultLiveTarget !== undefined) schedule.defaultLiveTarget = Number(defaultLiveTarget);
+    if (defaultBreakTarget !== undefined) schedule.defaultBreakTarget = Number(defaultBreakTarget);
+    if (defaultTrainingTarget !== undefined) schedule.defaultTrainingTarget = Number(defaultTrainingTarget);
+    if (defaultCoachingTarget !== undefined) schedule.defaultCoachingTarget = Number(defaultCoachingTarget);
+
     if (weeklyOverrides !== undefined) {
       schedule.weeklyOverrides = weeklyOverrides;
       schedule.markModified('weeklyOverrides');
@@ -636,6 +645,23 @@ exports.updateDetailedSchedule = async (req, res) => {
         weeklyOffDays: defaultOffDays
       });
     }
+
+    // Sync / Upsert AuxSchedule for ESS and RTM visibility
+    const AuxSchedule = require('../models/AuxSchedule');
+    await AuxSchedule.findOneAndUpdate(
+      { userId: employeeId, month },
+      {
+        monthlyPlan: {
+          liveMinutes: schedule.defaultLiveTarget ?? 465,
+          breakMinutes: schedule.defaultBreakTarget ?? 75,
+          trainingMinutes: schedule.defaultTrainingTarget ?? 0,
+          coachingMinutes: schedule.defaultCoachingTarget ?? 0,
+        },
+        createdBy: req.user._id,
+        updatedBy: req.user._id,
+      },
+      { upsert: true, new: true }
+    );
 
     res.json({ success: true, data: schedule });
   } catch (error) {

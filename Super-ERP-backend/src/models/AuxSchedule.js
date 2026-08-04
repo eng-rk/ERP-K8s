@@ -4,8 +4,8 @@ const auxScheduleSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   month: { type: String, required: true }, // "YYYY-MM"
   monthlyPlan: {
-    liveMinutes:     { type: Number, default: 480 },
-    breakMinutes:    { type: Number, default: 60 },
+    liveMinutes:     { type: Number, default: 465 },
+    breakMinutes:    { type: Number, default: 75 },
     trainingMinutes: { type: Number, default: 0 },
     coachingMinutes: { type: Number, default: 0 },
   },

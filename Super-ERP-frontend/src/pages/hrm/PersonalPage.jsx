@@ -56,22 +56,22 @@ const PersonalPage = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().substring(0, 7)); // "YYYY-MM"
   const [detailedSchedule, setDetailedSchedule] = useState(null);
   const [selectedWeek, setSelectedWeek] = useState('Week 1');
-  const [weekShift, setWeekShift] = useState('Day Shift (09:00 - 17:00)');
+  const [weekShift, setWeekShift] = useState('Normal Shift (09:00 - 18:00)');
   const [weekOffDays, setWeekOffDays] = useState(['Friday', 'Saturday']);
   
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [dailyShift, setDailyShift] = useState('Day Shift (09:00 - 17:00)');
+  const [dailyShift, setDailyShift] = useState('Normal Shift (09:00 - 18:00)');
   const [dailyIsOff, setDailyIsOff] = useState(false);
 
   // Enhanced weekly schedule state
   const [weekDayConfig, setWeekDayConfig] = useState([
-    { day: 'Monday', shift: 'Day Shift (09:00 - 17:00)', isOff: false },
-    { day: 'Tuesday', shift: 'Day Shift (09:00 - 17:00)', isOff: false },
-    { day: 'Wednesday', shift: 'Day Shift (09:00 - 17:00)', isOff: false },
-    { day: 'Thursday', shift: 'Day Shift (09:00 - 17:00)', isOff: false },
-    { day: 'Friday', shift: 'Day Shift (09:00 - 17:00)', isOff: false },
-    { day: 'Saturday', shift: 'Day Shift (09:00 - 17:00)', isOff: true },
-    { day: 'Sunday', shift: 'Day Shift (09:00 - 17:00)', isOff: true },
+    { day: 'Monday', shift: 'Normal Shift (09:00 - 18:00)', isOff: false },
+    { day: 'Tuesday', shift: 'Normal Shift (09:00 - 18:00)', isOff: false },
+    { day: 'Wednesday', shift: 'Normal Shift (09:00 - 18:00)', isOff: false },
+    { day: 'Thursday', shift: 'Normal Shift (09:00 - 18:00)', isOff: false },
+    { day: 'Friday', shift: 'Normal Shift (09:00 - 18:00)', isOff: false },
+    { day: 'Saturday', shift: 'Normal Shift (09:00 - 18:00)', isOff: true },
+    { day: 'Sunday', shift: 'Normal Shift (09:00 - 18:00)', isOff: true },
   ]);
   const [copyingSchedule, setCopyingSchedule] = useState(false);
 
@@ -85,19 +85,19 @@ const PersonalPage = () => {
   const [copyBuffer, setCopyBuffer] = useState(null);
   const [applyRange, setApplyRange] = useState({ from: '', to: '' });
   const [editingDayData, setEditingDayData] = useState({
-    shift: 'Day Shift (09:00 - 17:00)',
+    shift: 'Normal Shift (09:00 - 18:00)',
     isOffDay: false,
     customStartTime: '',
     customEndTime: '',
-    liveTarget: 480,
-    breakTarget: 60,
+    liveTarget: 465,
+    breakTarget: 75,
     trainingTarget: 0,
     coachingTarget: 0
   });
 
   // Default AUX Target fields for monthly initial configuration
-  const [defaultLiveTarget, setDefaultLiveTarget] = useState(480);
-  const [defaultBreakTarget, setDefaultBreakTarget] = useState(60);
+  const [defaultLiveTarget, setDefaultLiveTarget] = useState(465);
+  const [defaultBreakTarget, setDefaultBreakTarget] = useState(75);
   const [defaultTrainingTarget, setDefaultTrainingTarget] = useState(0);
   const [defaultCoachingTarget, setDefaultCoachingTarget] = useState(0);
 
@@ -108,7 +108,7 @@ const PersonalPage = () => {
   const [leaveReason, setLeaveReason] = useState('');
 
   // Shift Fields (for scheduling)
-  const [shift, setShift] = useState('Day Shift (09:00 - 17:00)');
+  const [shift, setShift] = useState('Normal Shift (09:00 - 18:00)');
   const [offDays, setOffDays] = useState(['Friday', 'Saturday']);
 
   const [deptFilter, setDeptFilter] = useState('All');
@@ -253,8 +253,8 @@ const PersonalPage = () => {
         setOffDays(sched.defaultOffDays || ['Friday', 'Saturday']);
         
         // Bind AUX targets
-        setDefaultLiveTarget(sched.defaultLiveTarget ?? 480);
-        setDefaultBreakTarget(sched.defaultBreakTarget ?? 60);
+        setDefaultLiveTarget(sched.defaultLiveTarget ?? 465);
+        setDefaultBreakTarget(sched.defaultBreakTarget ?? 75);
         setDefaultTrainingTarget(sched.defaultTrainingTarget ?? 0);
         setDefaultCoachingTarget(sched.defaultCoachingTarget ?? 0);
 
@@ -487,8 +487,8 @@ const PersonalPage = () => {
       isOffDay: override.isOffDay || false,
       customStartTime: override.customStartTime || '',
       customEndTime: override.customEndTime || '',
-      liveTarget: override.liveTarget ?? detailedSchedule?.defaultLiveTarget ?? 480,
-      breakTarget: override.breakTarget ?? detailedSchedule?.defaultBreakTarget ?? 60,
+      liveTarget: override.liveTarget ?? detailedSchedule?.defaultLiveTarget ?? 465,
+      breakTarget: override.breakTarget ?? detailedSchedule?.defaultBreakTarget ?? 75,
       trainingTarget: override.trainingTarget ?? detailedSchedule?.defaultTrainingTarget ?? 0,
       coachingTarget: override.coachingTarget ?? detailedSchedule?.defaultCoachingTarget ?? 0
     });
@@ -992,8 +992,8 @@ const PersonalPage = () => {
                             }
 
                             // Retrieve targets
-                            const liveVal = detailedSchedule.defaultLiveTarget ?? 480;
-                            const breakVal = detailedSchedule.defaultBreakTarget ?? 60;
+                            const liveVal = detailedSchedule.defaultLiveTarget ?? 465;
+                            const breakVal = detailedSchedule.defaultBreakTarget ?? 75;
                             const trainVal = detailedSchedule.defaultTrainingTarget ?? 0;
                             const coachVal = detailedSchedule.defaultCoachingTarget ?? 0;
 
@@ -1216,10 +1216,10 @@ const PersonalPage = () => {
                           <div className="form-group" style={{ margin: 0 }}>
                             <label className="form-label">Default Monthly Shift</label>
                             <select className="form-input" value={shift} onChange={(e) => setShift(e.target.value)}>
-                              <option value="Day Shift (09:00 - 17:00)">Day Shift (09:00 - 17:00)</option>
+                              <option value="Normal Shift (09:00 - 18:00)">Normal Shift (09:00 - 18:00)</option>
+                              <option value="Morning Shift (07:00 - 16:00)">Morning Shift (07:00 - 16:00)</option>
                               <option value="Afternoon Shift (15:00 - 23:00)">Afternoon Shift (15:00 - 23:00)</option>
                               <option value="Night Shift (17:00 - 01:00)">Night Shift (17:00 - 01:00)</option>
-                              <option value="Overnight Shift (23:00 - 07:00)">Overnight Shift (23:00 - 07:00)</option>
                             </select>
                           </div>
 
@@ -1297,10 +1297,10 @@ const PersonalPage = () => {
                                   }}
                                   style={{ fontSize: 10, padding: '3px 6px', height: 'auto', width: '100%' }}
                                 >
-                                  <option value="Day Shift (09:00 - 17:00)">Day</option>
+                                  <option value="Normal Shift (09:00 - 18:00)">Normal</option>
+                                  <option value="Morning Shift (07:00 - 16:00)">Morning</option>
                                   <option value="Afternoon Shift (15:00 - 23:00)">Afternoon</option>
                                   <option value="Night Shift (17:00 - 01:00)">Night</option>
-                                  <option value="Overnight Shift (23:00 - 07:00)">Overnight</option>
                                 </select>
                               )}
                             </div>
@@ -1334,10 +1334,10 @@ const PersonalPage = () => {
                           <div className="form-group" style={{ margin: 0 }}>
                             <label className="form-label">Daily Shift</label>
                             <select className="form-input" value={dailyShift} onChange={(e) => setDailyShift(e.target.value)} disabled={dailyIsOff}>
-                              <option value="Day Shift (09:00 - 17:00)">Day Shift (09:00 - 17:00)</option>
+                              <option value="Normal Shift (09:00 - 18:00)">Normal Shift (09:00 - 18:00)</option>
+                              <option value="Morning Shift (07:00 - 16:00)">Morning Shift (07:00 - 16:00)</option>
                               <option value="Afternoon Shift (15:00 - 23:00)">Afternoon Shift (15:00 - 23:00)</option>
                               <option value="Night Shift (17:00 - 01:00)">Night Shift (17:00 - 01:00)</option>
-                              <option value="Overnight Shift (23:00 - 07:00)">Overnight Shift (23:00 - 07:00)</option>
                             </select>
                           </div>
 

@@ -67,7 +67,7 @@ const AuxSchedulePage = () => {
 
   // Schedule editor state
   const [selectedEmpId, setSelectedEmpId] = useState('');
-  const [monthlyPlan, setMonthlyPlan] = useState({ liveMinutes: 480, breakMinutes: 60, trainingMinutes: 0, coachingMinutes: 0 });
+  const [monthlyPlan, setMonthlyPlan] = useState({ liveMinutes: 465, breakMinutes: 75, trainingMinutes: 0, coachingMinutes: 0 });
   const [weeklyOverrides, setWeeklyOverrides] = useState([]);
   const [saving, setSaving] = useState(false);
 
@@ -98,10 +98,10 @@ const AuxSchedulePage = () => {
     if (!selectedEmpId) return;
     const existing = schedules.find(s => (s.userId?._id || s.userId) === selectedEmpId);
     if (existing) {
-      setMonthlyPlan(existing.monthlyPlan || { liveMinutes: 480, breakMinutes: 60, trainingMinutes: 0, coachingMinutes: 0 });
+      setMonthlyPlan(existing.monthlyPlan || { liveMinutes: 465, breakMinutes: 75, trainingMinutes: 0, coachingMinutes: 0 });
       setWeeklyOverrides(existing.weeklyOverrides || []);
     } else {
-      setMonthlyPlan({ liveMinutes: 480, breakMinutes: 60, trainingMinutes: 0, coachingMinutes: 0 });
+      setMonthlyPlan({ liveMinutes: 465, breakMinutes: 75, trainingMinutes: 0, coachingMinutes: 0 });
       setWeeklyOverrides([]);
     }
   }, [selectedEmpId, schedules]);
