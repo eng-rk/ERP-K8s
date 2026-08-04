@@ -6,9 +6,9 @@ module "vpc" {
   name = "${var.project_name}-${var.environment}-vpc"
   cidr = var.vpc_cidr
 
-  azs             = var.availability_zones
-  public_subnets  = var.public_subnet_cidrs
-  private_subnets = var.private_app_subnet_cidrs
+  azs              = var.availability_zones
+  public_subnets   = var.public_subnet_cidrs
+  private_subnets  = var.private_app_subnet_cidrs
   database_subnets = var.private_db_subnet_cidrs
 
   enable_nat_gateway     = true
@@ -19,12 +19,12 @@ module "vpc" {
   enable_dns_support   = true
 
   public_subnet_tags = {
-    "kubernetes.io/role/elb" = "1"
+    "kubernetes.io/role/elb"                          = "1"
     "kubernetes.io/cluster/${local.eks_cluster_name}" = "shared"
   }
 
   private_subnet_tags = {
-    "kubernetes.io/role/internal-elb" = "1"
+    "kubernetes.io/role/internal-elb"                 = "1"
     "kubernetes.io/cluster/${local.eks_cluster_name}" = "shared"
   }
 
@@ -100,9 +100,9 @@ module "ecr_backend" {
         rulePriority = 1
         description  = "Keep last 30 images"
         selection = {
-          tagStatus     = "any"
-          countType     = "imageCountMoreThan"
-          countNumber   = 30
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 30
         }
         action = {
           type = "expire"
@@ -199,8 +199,8 @@ module "elasticache" {
   parameter_group_name = "default.redis7"
   port                 = 6379
 
-  vpc_id     = module.vpc.vpc_id
-  subnets    = module.vpc.database_subnets
+  vpc_id  = module.vpc.vpc_id
+  subnets = module.vpc.database_subnets
 
   tags = local.common_tags
 }
