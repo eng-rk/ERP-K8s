@@ -28,8 +28,8 @@ const SettingsPage = () => {
   const [savingErp, setSavingErp] = useState(false);
 
   // General settings
-  const [appName, setAppName] = useState('Super CRM');
-  const [companyName, setCompanyName] = useState('Super Enterprise Inc.');
+  const [appName, setAppName] = useState('Core CRM');
+  const [companyName, setCompanyName] = useState('Core Enterprise Inc.');
   const [companyLogo, setCompanyLogo] = useState('');
   const [maintenanceMode, setMaintenanceMode] = useState(false);
 
@@ -76,7 +76,7 @@ const SettingsPage = () => {
       try {
         const { data } = await API.get('/settings/branding');
         if (data.success && data.data) {
-          setCompanyName(data.data.companyName || 'Super CRM');
+          setCompanyName(data.data.companyName || 'Core CRM');
           setCompanyLogo(data.data.companyLogo || '');
         }
       } catch (err) {
@@ -135,7 +135,7 @@ const SettingsPage = () => {
     setErrorMsg('');
     try {
       const payload = {
-        companyName: companyName.trim() || 'Super CRM',
+        companyName: companyName.trim() || 'Core CRM',
         companyLogo: companyLogo.trim() || ''
       };
       const { data } = await API.put('/settings/branding', payload);
