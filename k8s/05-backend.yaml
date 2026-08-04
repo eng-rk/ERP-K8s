@@ -20,6 +20,11 @@ metadata:
 spec:
   replicas: 2
   revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: backend
@@ -28,10 +33,17 @@ spec:
       labels:
         app: backend
     spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
         - name: backend
           image: rowank/super-erp-backend:v2
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
           ports:
             - containerPort: 5000
           envFrom:
@@ -39,6 +51,13 @@ spec:
                 name: erp-backend-config
             - secretRef:
                 name: erp-backend-secrets
+          startupProbe:
+            httpGet:
+              path: /health/live
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 12
           livenessProbe:
             httpGet:
               path: /health/live

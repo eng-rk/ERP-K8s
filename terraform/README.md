@@ -8,33 +8,14 @@ Enterprise-grade modular Terraform infrastructure for **Core360 ERP** on Amazon 
 
 ```
 terraform/
-├── bootstrap/                          # Dedicated Local-State Bootstrap (Run ONCE by Admin)
-│   ├── main.tf, variables.tf, outputs.tf, versions.tf, README.md
-├── modules/                            # Reusable Infrastructure Modules
-│   ├── vpc/                            # Multi-AZ VPC, Subnets, IGW, NAT, Route Tables
-│   ├── security-groups/                # Security Groups for ALB, EKS, Worker Nodes, DB
-│   ├── iam/                            # OIDC Provider, Roles, IRSA Policies
-│   ├── kms/                            # KMS Customer Managed Keys
-│   ├── ecr/                            # Repositories for core360-backend & core360-frontend
-│   ├── eks/                            # Managed EKS Cluster, Node Groups, OIDC Provider
-│   ├── alb/                            # Application Load Balancer, Target Groups, Listeners
-│   ├── route53/                        # Route53 DNS Zones & Record Sets
-│   ├── acm/                            # AWS Certificate Manager SSL/TLS Certificates
-│   ├── waf/                            # AWS WAF v2 Web ACL Rules
-│   ├── external-secrets/               # External Secrets Operator Helm & IRSA Setup
-│   └── monitoring/                     # CloudWatch Logs, Alarms, Container Insights, SNS
-├── environments/                       # Environment Deployments
-│   ├── dev/                            # Development environment root
-│   ├── staging/                        # Staging environment root
-│   └── production/                     # Production environment root
-├── scripts/                            # Operational Helper Scripts
-│   ├── terraform-init.sh
-│   ├── terraform-plan.sh
-│   ├── terraform-apply.sh
-│   └── terraform-destroy.sh
-├── policies/                           # Security & IAM Policy Documents
-├── docs/                               # Operational Specifications & Diagrams
-└── examples/                           # Module Usage Examples
+├── main.tf              # AWS Infrastructure Root Module (official terraform-aws-modules)
+├── variables.tf         # Input variable definitions & defaults
+├── outputs.tf           # Output values (VPC, EKS, ALB, ECR, DocumentDB, ElastiCache)
+├── providers.tf         # AWS Provider configuration & default tags
+├── versions.tf          # Terraform & AWS provider version constraints
+├── backend.tf           # Remote S3 backend configuration
+├── locals.tf            # Common tags & local variables
+└── terraform.tfvars     # Default production variable values
 ```
 
 ---

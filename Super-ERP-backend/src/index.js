@@ -1,6 +1,9 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const promClient = require('prom-client');
 const path = require('path');
 const cron = require('node-cron');
 const connectDB = require('./config/db');
@@ -15,6 +18,55 @@ connectDB().catch(err => {
 
 const app = express();
 
+// Security Headers with Helmet
+app.use(helmet({ contentSecurityPolicy: false }));
+
+// Rate Limiter Setup
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  message: { message: 'Too many requests from this IP, please try again later.' }
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: { message: 'Too many authentication attempts, please try again later.' }
+});
+
+app.use('/api/', globalLimiter);
+app.use('/api/auth/login', authLimiter);
+
+// Prometheus Metrics Setup
+promClient.collectDefaultMetrics({ prefix: 'core360_backend_' });
+
+const httpRequestDurationMicroseconds = new promClient.Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'Duration of HTTP requests in seconds',
+  labelNames: ['method', 'route', 'code'],
+  buckets: [0.1, 0.3, 0.5, 0.7, 1, 3, 5, 10]
+});
+
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = (Date.now() - start) / 1000;
+    const route = req.route ? req.route.path : req.path;
+    httpRequestDurationMicroseconds.labels(req.method, route, res.statusCode).observe(duration);
+  });
+  next();
+});
+
+// Expose Prometheus Metrics Endpoint
+app.get('/metrics', async (req, res) => {
+  try {
+    res.setHeader('Content-Type', promClient.register.contentType);
+    res.send(await promClient.register.metrics());
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
   ? process.env.CORS_ALLOWED_ORIGINS.split(',').map(o => o.trim())
   : [];
@@ -25,7 +77,6 @@ const corsMiddleware = cors({
     if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    // Set to false to omit headers instead of throwing an Error exception
     callback(null, false);
   },
   credentials: true,
@@ -38,7 +89,6 @@ app.use((req, res, next) => {
   const origin = req.headers.origin;
 
   corsMiddleware(req, res, () => {
-    // If the request had an origin header, but the cors middleware declined to set CORS headers (meaning origin not allowed)
     if (origin && !res.getHeader('Access-Control-Allow-Origin')) {
       return res.status(403).json({ message: 'CORS policy blocked this origin.' });
     }
@@ -51,11 +101,9 @@ app.options('/*splat', corsMiddleware);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Request logger for debugging in serverless environments (generates a short request id)
 const requestLogger = require('./middleware/requestLogger');
 app.use(requestLogger);
 
-// Ensure required upload directories exist
 ensureDirectories();
 
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));

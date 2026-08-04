@@ -17,17 +17,18 @@ metadata:
   name: backend-deployment
   namespace: {{ .Values.global.namespace }}
   labels:
+    {{- include "core360-app.labels" . | nindent 4 }}
     app: backend
 spec:
   replicas: {{ .Values.backend.replicaCount }}
   revisionHistoryLimit: 3
   selector:
     matchLabels:
-      app: backend
+      {{- include "core360-app.backendSelectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: backend
+        {{- include "core360-app.backendSelectorLabels" . | nindent 8 }}
     spec:
       containers:
         - name: backend

@@ -627,7 +627,7 @@ const SettingsPage = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {[
                     { id: 'service', title: 'Service', desc: 'Bookings module only.' },
-                    { id: 'product', title: 'Product', desc: 'Products module + Super Inventory & Super Supply Chain.' },
+                    { id: 'product', title: 'Product', desc: 'Products module + Core Inventory & Core Supply Chain.' },
                     { id: 'both', title: 'Both Service & Product', desc: 'Everything: Bookings, Products, Inventory & Supply Chain.' },
                   ].map(opt => (
                     <label
@@ -687,7 +687,7 @@ const SettingsPage = () => {
                   ERP Integration
                 </h3>
                 <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
-                  Base URL of the external Super ERP (Inventory &amp; Supply Chain apps). When set, the sidebar opens them in a new tab.
+                  Base URL of the external Core360 ERP (Inventory &amp; Supply Chain apps). When set, the sidebar opens them in a new tab.
                 </p>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'flex-end' }}>

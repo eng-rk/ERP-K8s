@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: core360-backend-sa
+  namespace: super-erp
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: core360-backend-role
+  namespace: super-erp
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: core360-backend-rolebinding
+  namespace: super-erp
+subjects:
+  - kind: ServiceAccount
+    name: core360-backend-sa
+    namespace: super-erp
+roleRef:
+  kind: Role
+  name: core360-backend-role
+  apiGroup: rbac.authorization.k8s.io

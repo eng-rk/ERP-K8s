@@ -4,17 +4,18 @@ metadata:
   name: frontend-deployment
   namespace: {{ .Values.global.namespace }}
   labels:
+    {{- include "core360-app.labels" . | nindent 4 }}
     app: frontend
 spec:
   replicas: {{ .Values.frontend.replicaCount }}
   revisionHistoryLimit: 3
   selector:
     matchLabels:
-      app: frontend
+      {{- include "core360-app.frontendSelectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: frontend
+        {{- include "core360-app.frontendSelectorLabels" . | nindent 8 }}
     spec:
       containers:
         - name: frontend
