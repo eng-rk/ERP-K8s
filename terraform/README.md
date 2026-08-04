@@ -8,56 +8,45 @@ Enterprise-grade modular Terraform infrastructure for **Core360 ERP** on Amazon 
 
 ```
 terraform/
-├── main.tf              # AWS Infrastructure Root Module (official terraform-aws-modules)
-├── variables.tf         # Input variable definitions & defaults
-├── outputs.tf           # Output values (VPC, EKS, ALB, ECR, DocumentDB, ElastiCache)
-├── providers.tf         # AWS Provider configuration & default tags
-├── versions.tf          # Terraform & AWS provider version constraints
-├── backend.tf           # Remote S3 backend configuration
-├── locals.tf            # Common tags & local variables
-└── terraform.tfvars     # Default production variable values
+└── environments/
+    ├── dev/
+    │   ├── main.tf           # Official terraform-aws-modules configuration (dev)
+    │   ├── variables.tf
+    │   ├── outputs.tf
+    │   ├── providers.tf
+    │   ├── versions.tf
+    │   ├── backend.tf
+    │   ├── locals.tf
+    │   └── terraform.tfvars
+    ├── staging/
+    │   ├── main.tf           # Official terraform-aws-modules configuration (staging)
+    │   ├── variables.tf
+    │   ├── outputs.tf
+    │   ├── providers.tf
+    │   ├── versions.tf
+    │   ├── backend.tf
+    │   ├── locals.tf
+    │   └── terraform.tfvars
+    └── production/
+        ├── main.tf           # Official terraform-aws-modules configuration (prod)
+        ├── variables.tf
+        ├── outputs.tf
+        ├── providers.tf
+        ├── versions.tf
+        ├── backend.tf
+        ├── locals.tf
+        └── terraform.tfvars
 ```
 
 ---
 
-## 2. Bootstrap & Deployment Flow
+## 2. Infrastructure Modules Used (Terraform Registry)
 
-### Step 1: Execute Bootstrap Layer (Run ONCE)
-```bash
-cd terraform/bootstrap
-terraform init
-terraform apply -auto-approve
-```
-
-### Step 2: Initialize Remote State for Target Environment
-```bash
-cd ../environments/production
-terraform init -backend-config="bucket=<s3_bucket_name>" \
-               -backend-config="key=production/terraform.tfstate" \
-               -backend-config="region=us-east-1" \
-               -backend-config="dynamodb_table=core360-tf-locks"
-```
-
-### Step 3: Plan and Apply Infrastructure Execution Plan
-```bash
-../../scripts/terraform-plan.sh production
-../../scripts/terraform-apply.sh production
-```
-
----
-
-## 3. Required GitHub Configuration
-
-### Required GitHub Secrets (`Settings > Secrets and variables > Actions > Secrets`)
-- `AWS_ROLE_TO_ASSUME`: `arn:aws:iam::<account-id>:role/core360-github-actions-role-production`
-
-### Required GitHub Variables (`Settings > Secrets and variables > Actions > Variables`)
-- `AWS_REGION`: `us-east-1`
-- `EKS_CLUSTER_NAME`: `core360-prod-eks`
-- `KUBE_NAMESPACE`: `core360-production`
-
----
-
-## 4. Operational Rollback Workflow
-- **Application Deployment**: `kubectl rollout undo deployment/backend-deployment -n core360-production`
-- **Terraform Infrastructure**: Revert git release tag and re-apply approved `tfplan` artifact.
+- **VPC**: `terraform-aws-modules/vpc/aws` (v5.18.1)
+- **EKS**: `terraform-aws-modules/eks/aws` (v20.33.1)
+- **ALB**: `terraform-aws-modules/alb/aws` (v9.13.0)
+- **ECR**: `terraform-aws-modules/ecr/aws` (v2.3.0)
+- **Security Groups**: `terraform-aws-modules/security-group/aws` (v5.3.0)
+- **KMS**: `terraform-aws-modules/kms/aws` (v3.1.1)
+- **DocumentDB**: `cloudposse/documentdb-cluster/aws` (v0.28.0)
+- **ElastiCache**: `terraform-aws-modules/elasticache/aws` (v1.4.1)

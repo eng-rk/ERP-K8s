@@ -12,19 +12,19 @@ module "vpc" {
   database_subnets = var.private_db_subnet_cidrs
 
   enable_nat_gateway     = true
-  single_nat_gateway     = false
-  one_nat_gateway_per_az = true
+  single_nat_gateway     = true
+  one_nat_gateway_per_az = false
 
   enable_dns_hostnames = true
   enable_dns_support   = true
 
   public_subnet_tags = {
-    "kubernetes.io/role/elb"                          = "1"
+    "kubernetes.io/role/elb" = "1"
     "kubernetes.io/cluster/${local.eks_cluster_name}" = "shared"
   }
 
   private_subnet_tags = {
-    "kubernetes.io/role/internal-elb"                 = "1"
+    "kubernetes.io/role/internal-elb" = "1"
     "kubernetes.io/cluster/${local.eks_cluster_name}" = "shared"
   }
 
@@ -37,7 +37,7 @@ module "kms" {
   version = "3.1.1"
 
   description             = "KMS Key for Core360 ${var.environment} encryption"
-  deletion_window_in_days = 30
+  deletion_window_in_days = 14
   enable_key_rotation     = true
 
   aliases = ["alias/${var.project_name}-${var.environment}"]
@@ -88,28 +88,11 @@ module "ecr_backend" {
   source  = "terraform-aws-modules/ecr/aws"
   version = "2.3.0"
 
-  repository_name = "${var.project_name}-backend"
+  repository_name = "${var.project_name}-backend-${var.environment}"
   repository_type = "private"
 
   repository_encryption_type = "KMS"
   repository_kms_key         = module.kms.key_arn
-
-  repository_lifecycle_policy = jsonencode({
-    rules = [
-      {
-        rulePriority = 1
-        description  = "Keep last 30 images"
-        selection = {
-          tagStatus   = "any"
-          countType   = "imageCountMoreThan"
-          countNumber = 30
-        }
-        action = {
-          type = "expire"
-        }
-      }
-    ]
-  })
 
   tags = local.common_tags
 }
@@ -118,7 +101,7 @@ module "ecr_frontend" {
   source  = "terraform-aws-modules/ecr/aws"
   version = "2.3.0"
 
-  repository_name = "${var.project_name}-frontend"
+  repository_name = "${var.project_name}-frontend-${var.environment}"
   repository_type = "private"
 
   repository_encryption_type = "KMS"
@@ -143,12 +126,12 @@ module "eks" {
 
   eks_managed_node_groups = {
     primary = {
-      name           = "${var.project_name}-node-group"
-      instance_types = ["m6i.large", "c6i.large"]
+      name           = "${var.project_name}-node-group-${var.environment}"
+      instance_types = ["t3.large"]
 
       min_size     = 2
-      max_size     = 8
-      desired_size = 3
+      max_size     = 4
+      desired_size = 2
 
       capacity_type = "ON_DEMAND"
     }
@@ -180,7 +163,7 @@ module "documentdb" {
   vpc_id          = module.vpc.vpc_id
   subnet_ids      = module.vpc.database_subnets
   instance_class  = "db.t3.medium"
-  cluster_size    = 2
+  cluster_size    = 1
   master_username = "adminuser"
 
   tags = local.common_tags
