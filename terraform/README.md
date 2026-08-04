@@ -1,5 +1,7 @@
 # Core360 Enterprise AWS Terraform Infrastructure
 
+<!-- CI/CD Validation Trigger: 2026-08-04 -->
+
 Enterprise-grade modular Terraform infrastructure for **Core360 ERP** on Amazon Web Services (AWS), complying with the **AWS Well-Architected Framework**, **HashiCorp Module Standards**, and **CIS AWS Foundations Benchmark**.
 
 ---
