@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../store/hooks';
 import logo from '../assets/logo.png';
 
 const LoginPage = () => {
@@ -28,51 +28,22 @@ const LoginPage = () => {
           <img src={logo} alt="CORE360" style={{ height: 38 }} />
           <span className="auth-logo-text">CORE360</span>
         </div>
-
         <h1 className="auth-title">Welcome back</h1>
         <p className="auth-subtitle">Sign in to your workspace</p>
-
         {error && <div className="alert alert-error">{error}</div>}
-
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label className="form-label" htmlFor="email">Email Address</label>
-            <input
-              id="email"
-              type="email"
-              className="form-input"
-              placeholder="you@company.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-            />
+            <input id="email" type="email" className="form-input" placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
           </div>
-
           <div className="form-group">
             <label className="form-label" htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              className="form-input"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
+            <input id="password" type="password" className="form-input" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
           </div>
-
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={loading}
-            style={{ marginTop: '8px' }}
-          >
+          <button type="submit" className="btn btn-primary" disabled={loading} style={{ marginTop: '8px' }}>
             {loading ? 'Signing in…' : 'Sign In'}
           </button>
         </form>
-
       </div>
     </div>
   );
