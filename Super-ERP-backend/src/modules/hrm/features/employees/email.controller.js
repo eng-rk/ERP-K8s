@@ -1,33 +1,35 @@
 const emailService = require('./email.service');
 
-const handle = (fn) => async (req, res) => {
+const sendEmail = async (req, res) => {
   try {
-    const data = await fn(req);
-    return res.json({ success: true, data, ...(data?.unreadCount !== undefined ? { unreadCount: data.unreadCount } : {}) });
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({ message: error.message || 'Server error' });
-  }
+    const data = await emailService.sendEmail({ senderId: req.user._id, ...req.body });
+    res.status(201).json({ success: true, data });
+  } catch (error) { res.status(error.statusCode || 500).json({ message: error.message || 'Server error' }); }
 };
 
-exports.sendEmail = handle(async (req) => emailService.sendEmail({
-  senderId: req.user._id,
-  ...req.body,
-}));
+const getInbox = async (req, res) => {
+  try {
+    const emails = await emailService.getInbox(req.user._id);
+    res.json({ success: true, data: emails, unreadCount: emails.filter((email) => !email.isRead).length });
+  } catch (error) { res.status(500).json({ message: error.message || 'Server error' }); }
+};
 
-exports.getInbox = handle(async (req) => {
-  const data = await emailService.getInbox(req.user._id);
-  return { emails: data, unreadCount: data.filter((email) => !email.isRead).length };
-});
+const getSent = async (req, res) => {
+  try { res.json({ success: true, data: await emailService.getSent(req.user._id) }); }
+  catch (error) { res.status(500).json({ message: error.message || 'Server error' }); }
+};
 
-exports.getSent = handle(async (req) => emailService.getSent(req.user._id));
-exports.getEmailThread = handle(async (req) => emailService.getThread(req.params.id));
+const getEmailThread = async (req, res) => {
+  try { res.json({ success: true, data: await emailService.getThread(req.params.id) }); }
+  catch (error) { res.status(500).json({ message: error.message || 'Server error' }); }
+};
 
-exports.markEmailRead = handle(async (req) => {
-  const data = await emailService.markRead(req.params.id, req.user._id);
-  if (!data) {
-    const error = new Error('Email not found');
-    error.statusCode = 404;
-    throw error;
-  }
-  return data;
-});
+const markEmailRead = async (req, res) => {
+  try {
+    const data = await emailService.markRead(req.params.id, req.user._id);
+    if (!data) return res.status(404).json({ message: 'Email not found' });
+    return res.json({ success: true, data });
+  } catch (error) { return res.status(500).json({ message: error.message || 'Server error' }); }
+};
+
+module.exports = { sendEmail, getInbox, getSent, getEmailThread, markEmailRead };
