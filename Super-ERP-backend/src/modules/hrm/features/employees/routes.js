@@ -35,4 +35,8 @@ router.get('/gov-doc-templates', protect, checkPermission('admin.settings.view')
 router.post('/gov-doc-templates', protect, checkPermission('admin.settings.update_business_model'), controller.createGovDocTemplate);
 router.delete('/gov-doc-templates/:id', protect, checkPermission('admin.settings.update_business_model'), controller.deleteGovDocTemplate);
 
+// Employee KPIs
+router.post('/kpis', protect, checkPermission('hrm.staff.edit_profile'), controller.createKPI);
+router.get('/kpis', protect, checkPermission('hrm.staff.view_list'), controller.getKPIs);
+
 module.exports = router;
