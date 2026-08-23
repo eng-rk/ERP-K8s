@@ -1,7 +1,6 @@
 const express = require('express');
 const { protect } = require('../../middleware/auth');
-const controller = require('../../controllers/gatewayController');
-
+const controller = require('./controller');
 const router = express.Router();
 router.get('/', protect, controller.getGateways);
 router.post('/', protect, controller.saveGateway);
