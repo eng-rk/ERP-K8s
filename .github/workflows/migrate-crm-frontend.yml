@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   migrate:
-    if: ${{ !contains(github.event.head_commit.message, 'refactor(frontend): migrate CRM implementation files') }}
+    if: ${{ !contains(github.event.head_commit.message, 'refactor(frontend): migrate CRM implementation files') && !contains(github.event.head_commit.message, 'chore(ci): remove one-shot CRM migration workflow') }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -51,7 +51,6 @@ jobs:
                   if source.exists() and not target.exists():
                       source.rename(target)
 
-          # CRM-specific supporting UI/helpers.
           support_moves = {
               'OfferHistoryModal.jsx': crm_root / 'offers' / 'components' / 'OfferHistoryModal.jsx',
               'OfferVersionsModal.jsx': crm_root / 'offers' / 'components' / 'OfferVersionsModal.jsx',
@@ -63,11 +62,10 @@ jobs:
               if source.exists() and not target.exists():
                   source.rename(target)
 
-          # Fix imports for files that moved one level deeper into the module.
           for feature_dir in crm_root.iterdir():
               if not feature_dir.is_dir():
                   continue
-              for path in feature_dir.rglob(('*.jsx')):
+              for path in feature_dir.rglob('*.jsx'):
                   text = path.read_text()
                   text = text.replace("from '../context/", "from '../../../../context/")
                   text = text.replace("from '../services/", "from '../../../../services/")
@@ -76,7 +74,6 @@ jobs:
                   text = text.replace("from '../pages/", "from '../../../../pages/")
                   path.write_text(text)
 
-          # Cross-feature imports created by the CRM split.
           leads_details = crm_root / 'leads' / 'LeadDetailsPage.jsx'
           if leads_details.exists():
               text = leads_details.read_text()
@@ -86,7 +83,6 @@ jobs:
               text = text.replace("from '../../../../utils/offerHelpers'", "from '../offers/utils/offerHelpers'")
               leads_details.write_text(text)
 
-          # Update App.jsx to consume the module-owned pages. Runtime routes stay unchanged.
           app = root / 'App.jsx'
           text = app.read_text()
           import_map = {
@@ -113,16 +109,10 @@ jobs:
               )
           app.write_text(text)
 
-          # Regenerate the feature indexes from the implementation locations.
           for feature, filenames in moves.items():
-              lines = []
-              for filename in filenames:
-                  export_name = filename.replace('.jsx', '')
-                  lines.append(f"export {{ default as {export_name} }} from './{filename}';")
-              index = crm_root / feature / 'index.js'
-              index.write_text('\n'.join(lines) + '\n')
+              lines = [f"export {{ default as {filename.replace('.jsx', '')} }} from './{filename}';" for filename in filenames]
+              (crm_root / feature / 'index.js').write_text('\n'.join(lines) + '\n')
 
-          # Root CRM index and route module now point at the moved implementations.
           root_index = root / 'modules' / 'crm' / 'index.js'
           root_index.write_text('\n'.join([
               "export * from './features/leads';",
@@ -147,6 +137,7 @@ jobs:
 
       - name: Remove one-shot migration workflow
         shell: bash
+        working-directory: .
         run: |
           git rm .github/workflows/migrate-crm-frontend.yml
           git config user.name 'github-actions[bot]'
