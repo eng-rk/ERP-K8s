@@ -1,7 +1,5 @@
-const controller = require('../../../../controllers/paymentMethodController');
-module.exports = {
-  getMyPaymentMethods: controller.getMyPaymentMethods,
-  submitPaymentMethod: controller.submitPaymentMethod,
-  updatePaymentMethod: controller.updatePaymentMethod,
-  deletePaymentMethod: controller.deletePaymentMethod,
-};
+const service = require('./service');
+exports.getMyPaymentMethods = service.getMyPaymentMethods;
+exports.submitPaymentMethod = service.submitPaymentMethod;
+exports.updatePaymentMethod = service.updatePaymentMethod;
+exports.deletePaymentMethod = service.deletePaymentMethod;
