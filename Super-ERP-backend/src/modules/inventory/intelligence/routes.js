@@ -5,10 +5,10 @@ const { getValuationDetailed } = require('../../../controllers/inventoryExtensio
 const { protect } = require('../../../middleware/auth');
 const { checkPermission } = require('../../../middleware/authorize');
 router.use(protect);
-router.get('/valuation', checkPermission('wms.items.view'), getInventoryValuation);
-router.get('/valuation-detailed', checkPermission('wms.items.view'), getValuationDetailed);
-router.get('/abc', checkPermission('wms.items.view'), getABCClassification);
-router.get('/dead-stock', checkPermission('wms.items.view'), getDeadStockReport);
+router.get('/reports/valuation', checkPermission('wms.items.view'), getInventoryValuation);
+router.get('/reports/valuation-detailed', checkPermission('wms.items.view'), getValuationDetailed);
+router.get('/reports/abc', checkPermission('wms.items.view'), getABCClassification);
+router.get('/reports/dead-stock', checkPermission('wms.items.view'), getDeadStockReport);
 router.get('/alerts/reorder', checkPermission('wms.items.view'), getReorderAlerts);
 router.get('/alerts/expiry', checkPermission('wms.items.view'), getExpiryAlerts);
 router.get('/putaway/suggest', checkPermission('wms.items.view'), getPutawaySuggestion);
