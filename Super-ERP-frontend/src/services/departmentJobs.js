@@ -1,52 +1,59 @@
+export const DEPARTMENT_THEMES = {
+  Sales: { id: 'Sales', label: 'CRM / Sales', primary: '#F97316', dark: '#C2410C', light: '#FFF7ED', badgeClass: 'badge-new', icon: '💼' },
+  'Customer Support': { id: 'Customer Support', label: 'Customer Support', primary: '#F97316', dark: '#C2410C', light: '#FFF7ED', badgeClass: 'badge-converted', icon: '🎧' },
+  Marketing: { id: 'Marketing', label: 'Marketing', primary: '#F97316', dark: '#C2410C', light: '#FFF7ED', badgeClass: 'badge-meta', icon: '📣' },
+  Technology: { id: 'Technology', label: 'IT / Technology', primary: '#06B6D4', dark: '#0E7490', light: '#ECFEFF', badgeClass: 'badge-qualified', icon: '⚙️' },
+  Executive: { id: 'Executive', label: 'Executive', primary: '#06B6D4', dark: '#0E7490', light: '#ECFEFF', badgeClass: 'badge-converted', icon: '🏢' },
+  'Human Resources': { id: 'Human Resources', label: 'HR', primary: '#8B5CF6', dark: '#6D28D9', light: '#F5F3FF', badgeClass: 'badge-meta', icon: '👥' },
+  Personal: { id: 'Personal', label: 'Personal', primary: '#8B5CF6', dark: '#6D28D9', light: '#F5F3FF', badgeClass: 'badge-new', icon: '👤' },
+  Payroll: { id: 'Payroll', label: 'Payroll', primary: '#8B5CF6', dark: '#6D28D9', light: '#F5F3FF', badgeClass: 'badge-qualified', icon: '💵' },
+  Training: { id: 'Training', label: 'Training', primary: '#8B5CF6', dark: '#6D28D9', light: '#F5F3FF', badgeClass: 'badge-converted', icon: '📚' },
+  'Talent Acquisition': { id: 'Talent Acquisition', label: 'Talent Acquisition', primary: '#8B5CF6', dark: '#6D28D9', light: '#F5F3FF', badgeClass: 'badge-meta', icon: '🎯' },
+  'BD & People Culture': { id: 'BD & People Culture', label: 'BD & People Culture', primary: '#8B5CF6', dark: '#6D28D9', light: '#F5F3FF', badgeClass: 'badge-contacted', icon: '🤝' },
+  Finance: { id: 'Finance', label: 'Finance', primary: '#10B981', dark: '#047857', light: '#ECFDF5', badgeClass: 'badge-contacted', icon: '💰' },
+  Inventory: { id: 'Inventory', label: 'Inventory', primary: '#F59E0B', dark: '#B45309', light: '#FFFBEB', badgeClass: 'badge-qualified', icon: '📦' },
+  Operations: { id: 'Operations', label: 'Operations', primary: '#E11D48', dark: '#BE123C', light: '#FFF1F2', badgeClass: 'badge-contacted', icon: '🛠️' },
+};
+
 export const DEPARTMENTS = [
-  {
-    id: 'Sales',
-    label: '💼 Sales',
-    roles: ['Sales Agent', 'Sales Manager'],
-  },
-  {
-    id: 'Customer Support',
-    label: '🎧 Customer Support',
-    roles: ['Customer Support Agent', 'Customer Support Manager'],
-  },
-  {
-    id: 'Marketing',
-    label: '📣 Marketing',
-    roles: ['Marketing Specialist', 'Marketing Manager'],
-  },
-  {
-    id: 'Technology',
-    label: '💻 Technology',
-    roles: ['CRM Developer', 'CRM Consultant', 'System Architect', 'Business Analyst'],
-  },
-  {
-    id: 'Executive',
-    label: '🏛 Executive',
-    roles: ['Executive User', 'Super CRM Administrator'],
-  },
-  {
-    id: 'Human Resources',
-    label: '👥 Human Resources',
-    roles: [
-      'HRM System Administrator',
-      'HR Manager',
-      'HR Director / Executive HR User',
-      'HR Specialist (Generalist)',
-      'HR Business Partner',
-      'Recruitment Specialist (Talent Acquisition)',
-      'Payroll Specialist',
-      'Training and Development Specialist',
-      'Performance Management Specialist',
-      'Attendance and Time Officer',
-      'Employee (General User)',
-    ],
-  },
+  { id: 'Sales', label: '💼 Sales', roles: ['Sales Agent', 'Sales Manager'] },
+  { id: 'Customer Support', label: '🎧 Customer Support', roles: ['Customer Support Agent', 'Customer Support Manager'] },
+  { id: 'Marketing', label: '📣 Marketing', roles: ['Marketing Specialist', 'Marketing Manager'] },
+  { id: 'Technology', label: '💻 Technology', roles: ['CRM Developer', 'CRM Consultant', 'System Architect', 'Business Analyst'] },
+  { id: 'Executive', label: '🏛 Executive', roles: ['Executive User', 'Super CRM Administrator', 'Core 360 Administrator', 'CRM core Administrator'] },
+  { id: 'Human Resources', label: '👥 Human Resources', roles: ['HRM System Administrator', 'HR Manager', 'HR Director / Executive HR User', 'HR Specialist (Generalist)', 'HR Business Partner', 'Recruitment Specialist (Talent Acquisition)', 'Payroll Specialist', 'Training and Development Specialist', 'Performance Management Specialist', 'Attendance and Time Officer', 'Employee (General User)'] },
+  { id: 'Finance', label: '💰 Finance', roles: ['Finance Manager', 'Finance Analyst', 'Accountant', 'Controller', 'Bookkeeper'] },
+  { id: 'Inventory', label: '📦 Inventory', roles: ['Inventory Manager', 'Warehouse Manager', 'Inventory Clerk', 'Stock Controller'] },
+  { id: 'Operations', label: '🛠️ Operations', roles: ['Operations Manager', 'Operations Analyst', 'Operations Supervisor'] },
+  { id: 'Personal', label: '👤 Personal', roles: ['HR Specialist (Generalist)', 'Employee (General User)'] },
+  { id: 'Payroll', label: '💵 Payroll', roles: ['Payroll Specialist'] },
+  { id: 'Training', label: '📚 Training', roles: ['Training and Development Specialist'] },
+  { id: 'Talent Acquisition', label: '🎯 Talent Acquisition', roles: ['Recruitment Specialist (Talent Acquisition)'] },
+  { id: 'BD & People Culture', label: '🤝 BD & People Culture', roles: ['HR Business Partner'] },
 ];
 
 export const ALL_ROLES = DEPARTMENTS.flatMap((d) => d.roles);
+export const getRolesByDepartment = (deptId) => DEPARTMENTS.find((d) => d.id === deptId)?.roles || [];
+export const getDepartmentByRole = (role) => {
+  if (!role) return '';
+  const normalized = String(role).trim().toLowerCase();
+  return DEPARTMENTS.find((d) => d.roles.some((r) => String(r).trim().toLowerCase() === normalized))?.id || '';
+};
 
-export const getRolesByDepartment = (deptId) =>
-  DEPARTMENTS.find((d) => d.id === deptId)?.roles || [];
+export const getDepartmentTheme = (deptId = '') => {
+  const normalized = String(deptId || '').trim().toLowerCase();
+  if (!normalized) return DEPARTMENT_THEMES.Sales;
+  if (DEPARTMENT_THEMES[deptId]) return DEPARTMENT_THEMES[deptId];
+  const aliases = {
+    sales: 'Sales', crm: 'Sales', 'crm/sales': 'Sales',
+    hr: 'Human Resources', 'human resources': 'Human Resources', 'human-resources': 'Human Resources',
+    it: 'Technology', technology: 'Technology', 'it/technology': 'Technology',
+    personal: 'Personal', payroll: 'Payroll', training: 'Training',
+    'talent acquisition': 'Talent Acquisition', 'bd & people culture': 'BD & People Culture',
+    'bd and people culture': 'BD & People Culture', finance: 'Finance', inventory: 'Inventory',
+    operations: 'Operations', executive: 'Executive',
+  };
+  return DEPARTMENT_THEMES[aliases[normalized] || 'Sales'];
+};
 
-export const getDepartmentByRole = (role) =>
-  DEPARTMENTS.find((d) => d.roles.includes(role))?.id || '';
+export const getDepartmentThemeByRole = (role = '') => getDepartmentTheme(getDepartmentByRole(role));
