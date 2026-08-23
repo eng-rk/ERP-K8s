@@ -1,9 +1,10 @@
 name: Migrate CRM frontend module
 
 on:
-  push:
+  pull_request:
+    types: [opened, synchronize]
     branches:
-      - refactor/frontend-crm
+      - main
 
 permissions:
   contents: write
@@ -16,9 +17,10 @@ jobs:
       run:
         working-directory: Super-ERP-frontend
     steps:
-      - name: Checkout branch
+      - name: Checkout CRM branch
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -86,27 +88,16 @@ jobs:
           app = root / 'App.jsx'
           text = app.read_text()
           import_map = {
-              'LeadsPage': 'leads/LeadsPage',
-              'LeadDistributionPage': 'leads/LeadDistributionPage',
-              'LeadDetailsPage': 'leads/LeadDetailsPage',
-              'OfferDetailPage': 'offers/OfferDetailPage',
-              'BookingLookupPage': 'bookings/BookingLookupPage',
-              'TicketsPage': 'tickets/TicketsPage',
-              'AnalyticsPage': 'analytics/AnalyticsPage',
-              'SalesKanbanPage': 'sales/SalesKanbanPage',
-              'ExecutiveDashboardPage': 'sales/ExecutiveDashboardPage',
-              'CampaignsPage': 'campaigns/CampaignsPage',
-              'CampaignFormPage': 'campaigns/CampaignFormPage',
-              'EmailsPage': 'email/EmailsPage',
-              'SentEmailsPage': 'email/SentEmailsPage',
-              'EmailComposer': 'email/EmailComposer',
+              'LeadsPage': 'leads/LeadsPage', 'LeadDistributionPage': 'leads/LeadDistributionPage',
+              'LeadDetailsPage': 'leads/LeadDetailsPage', 'OfferDetailPage': 'offers/OfferDetailPage',
+              'BookingLookupPage': 'bookings/BookingLookupPage', 'TicketsPage': 'tickets/TicketsPage',
+              'AnalyticsPage': 'analytics/AnalyticsPage', 'SalesKanbanPage': 'sales/SalesKanbanPage',
+              'ExecutiveDashboardPage': 'sales/ExecutiveDashboardPage', 'CampaignsPage': 'campaigns/CampaignsPage',
+              'CampaignFormPage': 'campaigns/CampaignFormPage', 'EmailsPage': 'email/EmailsPage',
+              'SentEmailsPage': 'email/SentEmailsPage', 'EmailComposer': 'email/EmailComposer',
           }
           for name, module_path in import_map.items():
-              text = re.sub(
-                  rf"import {name} from './pages/{re.escape(name)}';",
-                  f"import {name} from './modules/crm/features/{module_path}';",
-                  text,
-              )
+              text = re.sub(rf"import {name} from './pages/{re.escape(name)}';", f"import {name} from './modules/crm/features/{module_path}';", text)
           app.write_text(text)
 
           for feature, filenames in moves.items():
@@ -115,15 +106,10 @@ jobs:
 
           root_index = root / 'modules' / 'crm' / 'index.js'
           root_index.write_text('\n'.join([
-              "export * from './features/leads';",
-              "export * from './features/campaigns';",
-              "export * from './features/offers';",
-              "export * from './features/sales';",
-              "export * from './features/bookings';",
-              "export * from './features/analytics';",
-              "export * from './features/tickets';",
-              "export * from './features/email';",
-              '',
+              "export * from './features/leads';", "export * from './features/campaigns';",
+              "export * from './features/offers';", "export * from './features/sales';",
+              "export * from './features/bookings';", "export * from './features/analytics';",
+              "export * from './features/tickets';", "export * from './features/email';", '',
           ]))
 
           subprocess.run(['git', 'config', 'user.name', 'github-actions[bot]'], check=True)
