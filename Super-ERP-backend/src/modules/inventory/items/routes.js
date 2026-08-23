@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { checkPermission } = require('../../../middleware/authorize');
-const { getInventoryItems, createInventoryItem, updateInventoryItem, deleteInventoryItem, getStockLevels, getStockTransactions, getInventoryKPIs, scanBarcode, getFefoRecommendation, getUomConversions } = { ...require('../../../controllers/inventoryController'), ...require('../../../controllers/inventoryExtensionsController') };
+const { getInventoryItems, createInventoryItem, updateInventoryItem, deleteInventoryItem, getStockLevels, getStockTransactions, getInventoryKPIs, scanBarcode, getFefoRecommendation, getUomConversions } = require('./controller');
 router.get('/items', checkPermission('wms.items.view'), getInventoryItems);
 router.post('/items', checkPermission('wms.items.create'), createInventoryItem);
 router.put('/items/:id', checkPermission('wms.items.edit'), updateInventoryItem);
