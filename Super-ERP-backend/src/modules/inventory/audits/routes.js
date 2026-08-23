@@ -1,0 +1,11 @@
+const express = require('express');
+const router = express.Router();
+const { createCycleCount, getCycleCounts, createPhysicalInventory, getPhysicalInventories } = require('../../../controllers/inventoryController');
+const { protect } = require('../../../middleware/auth');
+const { checkPermission } = require('../../../middleware/authorize');
+router.use(protect);
+router.post('/cycle-counts', checkPermission('wms.audits.cycle_count'), createCycleCount);
+router.get('/cycle-counts', checkPermission('wms.items.view'), getCycleCounts);
+router.post('/physical-inventories', checkPermission('wms.audits.physical_inventory'), createPhysicalInventory);
+router.get('/physical-inventories', checkPermission('wms.items.view'), getPhysicalInventories);
+module.exports = router;
