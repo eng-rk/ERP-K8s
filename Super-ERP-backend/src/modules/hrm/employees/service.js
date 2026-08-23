@@ -1,5 +1,5 @@
 const Employee = require('./model');
-const User = require('../../models/User');
+const User = require('../../../models/User');
 
 async function createEmployee(payload) {
   const user = await User.findById(payload.userId).select('_id role isActive');
