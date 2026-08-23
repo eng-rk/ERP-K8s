@@ -1,0 +1,16 @@
+const express = require('express');
+const router = express.Router();
+const { postGoodsIssue, createShipment, getShipments, createReturnOrder, createPickTask, getPickTasks, getPickTask, updatePickTask, releasePickWave } = require('../../../controllers/inventoryController');
+const { protect } = require('../../../middleware/auth');
+const { checkPermission } = require('../../../middleware/authorize');
+router.use(protect);
+router.post('/issues/goods/:id', checkPermission('wms.shipping.post_issue'), postGoodsIssue);
+router.post('/shipments', checkPermission('wms.shipping.create_wave'), createShipment);
+router.get('/shipments', checkPermission('wms.shipping.view'), getShipments);
+router.post('/returns', checkPermission('wms.receiving.create_order'), createReturnOrder);
+router.post('/pick-tasks', checkPermission('wms.shipping.create_wave'), createPickTask);
+router.get('/pick-tasks', checkPermission('wms.shipping.view'), getPickTasks);
+router.get('/pick-tasks/:id', checkPermission('wms.shipping.view'), getPickTask);
+router.put('/pick-tasks/:id', checkPermission('wms.shipping.assign_picker'), updatePickTask);
+router.post('/pick-wave/release', checkPermission('wms.shipping.create_wave'), releasePickWave);
+module.exports = router;
