@@ -5,10 +5,10 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const promClient = require('prom-client');
 const path = require('path');
-const cron = require('node-cron');
 const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 const { ensureDirectories } = require('./utils/ensureDirectories');
+const { registerStartupJobs } = require('./services/startupJobs');
 
 dotenv.config();
 connectDB().catch(err => console.error('Unexpected error during DB connection:', err));
@@ -55,8 +55,8 @@ const templateRoutes = require('./routes/templateRoutes');
 const permissionRoutes = require('./modules/iam/routes');
 app.use('/api/auth',authRoutes); app.use('/api/iam',permissionRoutes); app.use('/api/webhooks',webhookRoutes); app.use('/api/leads',leadRoutes); app.use('/api/tickets',ticketRoutes); app.use('/api/analytics',analyticsRoutes); app.use('/api/campaigns',campaignRoutes); app.use('/api/public',publicRoutes); app.use('/api/offers',offerRoutes); app.use('/api/hrm',hrmRoutes); app.use('/api/payroll',payrollRoutes); app.use('/api/ess',essRoutes); app.use('/api/gateway',gatewayRoutes); app.use('/api/settings',settingsRoutes); app.use('/api/public/pay',paymentRoutes); app.use('/api/bookings',bookingRoutes); app.use('/api/products',productRoutes); app.use('/api/inventory',inventoryRoutes); app.use('/api/templates',templateRoutes);
 app.get('/',(req,res)=>res.send('CRM Backend API is running...'));
-let server; let campaignInterval; const scheduledTasks=[];
-const runStartupTasks=()=>{try{const enableCronJobs=process.env.ENABLE_CRON_JOBS!=='false'; if(enableCronJobs){const {updateExpiredCampaigns}=require('./services/campaignHelper'); updateExpiredCampaigns(); campaignInterval=setInterval(updateExpiredCampaigns,5*60*1000);}}catch(err){console.error('[Startup] Error running startup tasks:',err.message);}}; runStartupTasks();
+let server;
+const { campaignInterval, scheduledTasks } = registerStartupJobs();
 let isShuttingDown=false; const gracefulShutdown=(signal)=>{if(isShuttingDown)return;isShuttingDown=true;console.log(`[Shutdown] Received ${signal}. Starting graceful shutdown...`);if(campaignInterval)clearInterval(campaignInterval);scheduledTasks.forEach(task=>{try{task.stop();}catch(_){}});if(server)server.close(()=>mongoose.connection.close(false).then(()=>process.exit(0)).catch(()=>process.exit(1)));else mongoose.connection.close(false).then(()=>process.exit(0)).catch(()=>process.exit(1));};
 process.on('SIGTERM',()=>gracefulShutdown('SIGTERM')); process.on('SIGINT',()=>gracefulShutdown('SIGINT'));
 if(require.main===module){const PORT=process.env.PORT||5000;server=app.listen(PORT,()=>console.log(`Server running on port ${PORT}`));}
