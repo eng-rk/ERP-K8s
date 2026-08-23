@@ -16,7 +16,7 @@ router.use(receivingRoutes);
 router.use(shippingRoutes);
 router.use('/transfers', transferRoutes);
 router.use('/adjustments', adjustmentRoutes);
-router.use('/audits', auditRoutes);
+router.use(auditRoutes);
 router.use(intelligenceRoutes);
 router.get('/warehouses', checkPermission('wms.items.view'), getWarehouses);
 router.post('/warehouses', checkPermission('wms.items.create'), createWarehouse);
