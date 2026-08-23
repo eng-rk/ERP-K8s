@@ -1,0 +1,11 @@
+const express = require('express');
+const { protect } = require('../../../../middleware/auth');
+const { checkPermission } = require('../../../../middleware/authorize');
+const controller = require('../../../../controllers/permissionController');
+
+const router = express.Router();
+router.use(protect);
+router.get('/permissions', checkPermission('iam.permissions.view_matrix'), controller.getAllPermissions);
+router.get('/permissions/tree', checkPermission('iam.permissions.view_matrix'), controller.getPermissionTree);
+router.get('/permissions/:id', checkPermission('iam.permissions.view_matrix'), controller.getPermissionById);
+module.exports = router;
