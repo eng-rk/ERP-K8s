@@ -1,5 +1,5 @@
-const Campaign = require('../../../models/Campaign');
-const { updateExpiredCampaigns } = require('../../../services/campaignHelper');
+const Campaign = require('./model');
+const { updateExpiredCampaigns } = require('./service');
 
 exports.getCampaigns = async (req, res) => {
   try {
