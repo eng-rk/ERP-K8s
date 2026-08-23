@@ -4,55 +4,24 @@ const { protect } = require('../middleware/auth');
 const { checkPermission } = require('../middleware/authorize');
 const uploadGovDoc = require('../middleware/uploadHRM');
 const { uploadSignedContract: signedContractUpload } = require('../middleware/uploadHRM');
+const employeeRoutes = require('../modules/hrm/employees/routes');
 
 const {
-  sendEmail,
-  getInbox,
-  getSent,
-  getEmailThread,
-  markEmailRead,
-  upsertContract,
-  uploadSignedContract,
-  upsertSalaryComponent,
-  deleteSalaryComponent,
-  updateNetSalaryOnly,
-  getContracts,
-  getMyContract,
-  updateGovDocs,
-  uploadGovDocFile,
-  verifyGovDoc,
-  getGovDocTemplates,
-  createGovDocTemplate,
-  deleteGovDocTemplate,
-  getLeaveBalance,
-  createLeaveRequest,
-  getLeaveRequests,
-  updateLeaveStatus,
-  getDetailedSchedule,
-  updateDetailedSchedule,
-  createTraining,
-  getTrainings,
-  updateTrainingReport,
-  updateAuxStatus,
-  getTeamAux,
-  updateRtmFlag,
-  createVacancy,
-  getVacancies,
-  createCandidate,
-  getCandidates,
-  updateCandidateStatus,
-  addCandidateFeedback,
-  createKPI,
-  getKPIs,
-  createPartnership,
-  getPartnerships,
-  createSuggestion,
-  getSuggestions,
-  updateSuggestionStatus,
-  getAuxReport,
-  upsertAuxSchedule,
-  getAuxSchedules
+  sendEmail, getInbox, getSent, getEmailThread, markEmailRead,
+  upsertContract, uploadSignedContract, upsertSalaryComponent, deleteSalaryComponent,
+  updateNetSalaryOnly, getContracts, getMyContract, updateGovDocs, uploadGovDocFile,
+  verifyGovDoc, getGovDocTemplates, createGovDocTemplate, deleteGovDocTemplate,
+  getLeaveBalance, createLeaveRequest, getLeaveRequests, updateLeaveStatus,
+  getDetailedSchedule, updateDetailedSchedule, createTraining, getTrainings,
+  updateTrainingReport, updateAuxStatus, getTeamAux, updateRtmFlag,
+  createVacancy, getVacancies, createCandidate, getCandidates,
+  updateCandidateStatus, addCandidateFeedback, createKPI, getKPIs,
+  createPartnership, getPartnerships, createSuggestion, getSuggestions,
+  updateSuggestionStatus, getAuxReport, upsertAuxSchedule, getAuxSchedules
 } = require('../controllers/hrmController');
+
+// --- Employees ---
+router.use('/employees', protect, employeeRoutes);
 
 // --- Emails ---
 router.post('/emails', protect, checkPermission('hrm.staff.view_list'), sendEmail);
