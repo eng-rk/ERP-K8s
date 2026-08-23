@@ -1,13 +1,9 @@
 const express = require('express');
 const { protect, enforceSelfScope } = require('../../../../middleware/auth');
-const controller = require('../../../../controllers/paymentMethodController');
-
+const controller = require('./controller');
 const router = express.Router();
-const self = [protect, enforceSelfScope];
-
-router.get('/payment-methods', self, controller.getMyPaymentMethods);
-router.post('/payment-methods', self, controller.submitPaymentMethod);
-router.put('/payment-methods/:id', self, controller.updatePaymentMethod);
-router.delete('/payment-methods/:id', self, controller.deletePaymentMethod);
-
+router.get('/payment-methods', protect, enforceSelfScope, controller.getMyPaymentMethods);
+router.post('/payment-methods', protect, enforceSelfScope, controller.submitPaymentMethod);
+router.put('/payment-methods/:id', protect, enforceSelfScope, controller.updatePaymentMethod);
+router.delete('/payment-methods/:id', protect, enforceSelfScope, controller.deletePaymentMethod);
 module.exports = router;
