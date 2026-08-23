@@ -15,6 +15,10 @@ const {
   getInventoryValuation, getABCClassification, getDeadStockReport,
   getReorderAlerts, getExpiryAlerts, getPutawaySuggestion
 } = require('../controllers/inventoryController');
+const {
+  scanBarcode, getFefoRecommendation, getUomConversions,
+  getValuationDetailed, exportEtaEInvoicePayload
+} = require('../controllers/inventoryExtensionsController');
 
 router.use(protect);
 
@@ -61,19 +65,26 @@ router.put('/warehouses/:id', checkPermission('wms.items.edit'), updateWarehouse
 router.get('/lots', checkPermission('wms.items.view'), getLots);
 router.get('/serials', checkPermission('wms.items.view'), getSerials);
 
-// ─── Pick Tasks ──────────────────────────────────────────────────────────────
+// Pick Tasks
 router.post('/pick-tasks', checkPermission('wms.shipping.create_wave'), createPickTask);
 router.get('/pick-tasks', checkPermission('wms.shipping.view'), getPickTasks);
 router.get('/pick-tasks/:id', checkPermission('wms.shipping.view'), getPickTask);
 router.put('/pick-tasks/:id', checkPermission('wms.shipping.assign_picker'), updatePickTask);
 router.post('/pick-wave/release', checkPermission('wms.shipping.create_wave'), releasePickWave);
 
-// ─── Inventory Intelligence ──────────────────────────────────────────────────
+// Inventory Intelligence
 router.get('/reports/valuation', checkPermission('wms.items.view'), getInventoryValuation);
+router.get('/reports/valuation-detailed', checkPermission('wms.items.view'), getValuationDetailed);
 router.get('/reports/abc', checkPermission('wms.items.view'), getABCClassification);
 router.get('/reports/dead-stock', checkPermission('wms.items.view'), getDeadStockReport);
 router.get('/alerts/reorder', checkPermission('wms.items.view'), getReorderAlerts);
 router.get('/alerts/expiry', checkPermission('wms.items.view'), getExpiryAlerts);
 router.get('/putaway/suggest', checkPermission('wms.items.view'), getPutawaySuggestion);
+
+// Enterprise extensions inspired by the richer reference implementation.
+router.get('/barcode/scan/:barcode', checkPermission('wms.items.view'), scanBarcode);
+router.get('/fefo/recommend', checkPermission('wms.items.view'), getFefoRecommendation);
+router.get('/uoms', checkPermission('wms.items.view'), getUomConversions);
+router.get('/e-invoice/export/:receivingId', checkPermission('wms.receiving.view'), exportEtaEInvoicePayload);
 
 module.exports = router;
