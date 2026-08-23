@@ -1,13 +1,11 @@
 const express = require('express');
 const { protect } = require('../../middleware/auth');
 const { checkPermission } = require('../../middleware/authorize');
-const settings = require('../../controllers/settingsController');
+const settings = require('./controller');
 const uploadBranding = require('../../middleware/uploadBranding');
-
 const router = express.Router();
 const view = checkPermission('admin.settings.view');
 const update = checkPermission('admin.settings.update_business_model');
-
 router.get('/aux', protect, view, settings.getAuxSettings);
 router.put('/aux', protect, update, settings.updateAuxSettings);
 router.get('/business-model', protect, view, settings.getBusinessModel);
@@ -27,5 +25,4 @@ router.put('/pricing', protect, update, settings.updatePricingSettings);
 router.get('/currencies', protect, view, settings.getCurrencies);
 router.put('/currencies', protect, update, settings.updateCurrencies);
 router.delete('/currencies/:code', protect, update, settings.deleteCurrency);
-
 module.exports = router;
