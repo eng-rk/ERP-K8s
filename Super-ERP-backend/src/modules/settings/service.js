@@ -1,0 +1,22 @@
+const legacy = require('../../controllers/settingsController');
+module.exports = {
+  getAuxSettings: legacy.getAuxSettings,
+  updateAuxSettings: legacy.updateAuxSettings,
+  getBusinessModel: legacy.getBusinessModel,
+  updateBusinessModel: legacy.updateBusinessModel,
+  getEmailSettings: legacy.getEmailSettings,
+  updateEmailSettings: legacy.updateEmailSettings,
+  testEmailSettings: legacy.testEmailSettings,
+  getBrandingConfig: legacy.getBrandingConfig,
+  updateBrandingConfig: legacy.updateBrandingConfig,
+  uploadBrandingLogo: legacy.uploadBrandingLogo,
+  getErpConfig: legacy.getErpConfig,
+  updateErpConfig: legacy.updateErpConfig,
+  getTelephonyConfig: legacy.getTelephonyConfig,
+  updateTelephonyConfig: legacy.updateTelephonyConfig,
+  getPricingSettings: legacy.getPricingSettings,
+  updatePricingSettings: legacy.updatePricingSettings,
+  getCurrencies: legacy.getCurrencies,
+  updateCurrencies: legacy.updateCurrencies,
+  deleteCurrency: legacy.deleteCurrency,
+};
