@@ -1,1 +1,1 @@
-export { default as TicketsPage } from '../../../pages/TicketsPage';
+export { default as TicketsPage } from './TicketsPage.jsx';

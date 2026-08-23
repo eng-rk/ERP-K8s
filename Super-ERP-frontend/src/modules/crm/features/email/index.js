@@ -1,3 +1,3 @@
-export { default as EmailsPage } from '../../../pages/EmailsPage';
-export { default as EmailComposer } from '../../../pages/EmailComposer';
-export { default as SentEmailsPage } from '../../../pages/SentEmailsPage';
+export { default as EmailsPage } from './EmailsPage.jsx';
+export { default as SentEmailsPage } from './SentEmailsPage.jsx';
+export { default as EmailComposer } from './EmailComposer.jsx';

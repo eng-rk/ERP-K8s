@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import API from '../services/api';
-import { Icon } from '../components/Icons';
-import { Icon as LucideIcon } from '../utils/iconMapper';
+import API from '../../../../services/api';
+import { Icon } from '../../../../components/Icons';
+import { Icon as LucideIcon } from '../../../../utils/iconMapper';
 
 const AnalyticsPage = () => {
   const [stats, setStats] = useState(null);

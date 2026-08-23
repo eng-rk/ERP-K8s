@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import API from '../services/api';
-import { Icon } from '../utils/iconMapper';
+import API from '../../../../services/api';
+import { Icon } from '../../../../utils/iconMapper';
 
 const OfferHistoryModal = ({ offerId, onClose, onViewVersions }) => {
   const [history, setHistory] = useState([]);

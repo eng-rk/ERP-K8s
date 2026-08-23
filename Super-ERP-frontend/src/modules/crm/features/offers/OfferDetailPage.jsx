@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import API, { API_HOST } from '../services/api';
-import { Icon } from '../components/Icons';
+import { useAuth } from '../../../../context/AuthContext';
+import API, { API_HOST } from '../../../../services/api';
+import { Icon } from '../../../../components/Icons';
 import EmailComposer from './EmailComposer';
 
 const statusBadge = (status) => {

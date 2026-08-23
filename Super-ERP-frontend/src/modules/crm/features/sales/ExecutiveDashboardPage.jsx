@@ -3,9 +3,9 @@ import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
-import API from '../services/api';
-import { Icon } from '../components/Icons';
-import { Icon as LucideIcon } from '../utils/iconMapper';
+import API from '../../../../services/api';
+import { Icon } from '../../../../components/Icons';
+import { Icon as LucideIcon } from '../../../../utils/iconMapper';
 
 // ── Colour tokens ──────────────────────────────────────────────
 const C = {

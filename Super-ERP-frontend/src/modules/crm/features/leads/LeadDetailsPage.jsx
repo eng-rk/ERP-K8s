@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import API, { API_HOST } from '../services/api';
-import OfferHistoryModal from '../components/OfferHistoryModal';
-import OfferVersionsModal from '../components/OfferVersionsModal';
-import { Icon } from '../components/Icons';
-import { Icon as LucideIcon } from '../utils/iconMapper';
-import EmailComposer from './EmailComposer';
-import { normalizeCurrencies, validateOfferPrice } from '../utils/offerHelpers';
+import { useAuth } from '../../../../context/AuthContext';
+import API, { API_HOST } from '../../../../services/api';
+import OfferHistoryModal from '../offers/components/OfferHistoryModal';
+import OfferVersionsModal from '../offers/components/OfferVersionsModal';
+import { Icon } from '../../../../components/Icons';
+import { Icon as LucideIcon } from '../../../../utils/iconMapper';
+import EmailComposer from '../email/EmailComposer';
+import { normalizeCurrencies, validateOfferPrice } from '../offers/utils/offerHelpers';
 
 const statusBadge = (status) => {
   const map = {

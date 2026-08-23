@@ -1,1 +1,1 @@
-export { default as OfferDetailPage } from '../../../pages/OfferDetailPage';
+export { default as OfferDetailPage } from './OfferDetailPage.jsx';

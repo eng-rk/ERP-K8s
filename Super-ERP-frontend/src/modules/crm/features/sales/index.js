@@ -1,2 +1,2 @@
-export { default as SalesKanbanPage } from '../../../pages/SalesKanbanPage';
-export { default as ExecutiveDashboardPage } from '../../../pages/ExecutiveDashboardPage';
+export { default as SalesKanbanPage } from './SalesKanbanPage.jsx';
+export { default as ExecutiveDashboardPage } from './ExecutiveDashboardPage.jsx';

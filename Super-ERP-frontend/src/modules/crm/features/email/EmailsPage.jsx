@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import API from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import { Icon } from '../utils/iconMapper';
+import API from '../../../../services/api';
+import { useAuth } from '../../../../context/AuthContext';
+import { Icon } from '../../../../utils/iconMapper';
 
 // ── Avatar helper ──────────────────────────────────────────────────────────────
 const Avatar = ({ person, size = 34 }) => {

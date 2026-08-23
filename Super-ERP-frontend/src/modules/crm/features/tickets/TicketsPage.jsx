@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import API from '../services/api';
-import { Icon } from '../components/Icons';
-import { Icon as LucideIcon } from '../utils/iconMapper';
+import { useAuth } from '../../../../context/AuthContext';
+import API from '../../../../services/api';
+import { Icon } from '../../../../components/Icons';
+import { Icon as LucideIcon } from '../../../../utils/iconMapper';
 
 const AFFECTED_PAGES = [
   'Other',

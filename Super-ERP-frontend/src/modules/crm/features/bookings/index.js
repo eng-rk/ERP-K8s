@@ -1,1 +1,1 @@
-export { default as BookingLookupPage } from '../../../pages/BookingLookupPage';
+export { default as BookingLookupPage } from './BookingLookupPage.jsx';
