@@ -5,6 +5,7 @@ export const inventoryAPI = {
   createItem: (data) => API.post('/inventory/items', data).then(r => r.data),
   updateItem: (id, data) => API.put(`/inventory/items/${id}`, data).then(r => r.data),
   deleteItem: (id) => API.delete(`/inventory/items/${id}`).then(r => r.data),
+  scanBarcode: (barcode) => API.get(`/inventory/barcode/scan/${encodeURIComponent(barcode)}`).then(r => r.data),
 
   getStockLevels: (params) => API.get('/inventory/stock', { params }).then(r => r.data),
   getTransactions: (params) => API.get('/inventory/transactions', { params }).then(r => r.data),
@@ -19,6 +20,7 @@ export const inventoryAPI = {
   createReceivingOrder: (data) => API.post('/inventory/receiving-orders', data).then(r => r.data),
   updateReceivingOrder: (id, data) => API.put(`/inventory/receiving-orders/${id}`, data).then(r => r.data),
   getReceivingOrders: (params) => API.get('/inventory/receiving-orders', { params }).then(r => r.data),
+  exportEtaEInvoice: (receivingId) => API.get(`/inventory/e-invoice/export/${receivingId}`).then(r => r.data),
 
   createShipment: (data) => API.post('/inventory/shipments', data).then(r => r.data),
   createReturnOrder: (data) => API.post('/inventory/returns', data).then(r => r.data),
@@ -44,18 +46,19 @@ export const inventoryAPI = {
   getLots: (params) => API.get('/inventory/lots', { params }).then(r => r.data),
   getSerials: (params) => API.get('/inventory/serials', { params }).then(r => r.data),
 
-  // Pick Tasks
   createPickTask: (data) => API.post('/inventory/pick-tasks', data).then(r => r.data),
   getPickTasks: (params) => API.get('/inventory/pick-tasks', { params }).then(r => r.data),
   getPickTask: (id) => API.get(`/inventory/pick-tasks/${id}`).then(r => r.data),
   updatePickTask: (id, data) => API.put(`/inventory/pick-tasks/${id}`, data).then(r => r.data),
   releasePickWave: (data) => API.post('/inventory/pick-wave/release', data).then(r => r.data),
 
-  // Inventory Intelligence
   getValuationReport: (params) => API.get('/inventory/reports/valuation', { params }).then(r => r.data),
+  getDetailedValuationReport: (params) => API.get('/inventory/reports/valuation-detailed', { params }).then(r => r.data),
   getABCReport: (params) => API.get('/inventory/reports/abc', { params }).then(r => r.data),
   getDeadStockReport: (params) => API.get('/inventory/reports/dead-stock', { params }).then(r => r.data),
   getReorderAlerts: () => API.get('/inventory/alerts/reorder').then(r => r.data),
   getExpiryAlerts: (params) => API.get('/inventory/alerts/expiry', { params }).then(r => r.data),
   getPutawaySuggestion: (params) => API.get('/inventory/putaway/suggest', { params }).then(r => r.data),
+  getFefoRecommendation: (params) => API.get('/inventory/fefo/recommend', { params }).then(r => r.data),
+  getUomConversions: (params) => API.get('/inventory/uoms', { params }).then(r => r.data),
 };

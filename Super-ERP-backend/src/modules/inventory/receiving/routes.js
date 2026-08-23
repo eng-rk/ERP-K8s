@@ -1,0 +1,12 @@
+const express = require('express');
+const router = express.Router();
+const { checkPermission } = require('../../../middleware/authorize');
+const { postGoodsReceipt, createReceivingOrder, updateReceivingOrder, getReceivingOrders, createReturnOrder } = require('../../../controllers/inventoryController');
+const { exportEtaEInvoicePayload } = require('../../../controllers/inventoryExtensionsController');
+router.post('/receipts/goods/:id', checkPermission('wms.receiving.post_receipt'), postGoodsReceipt);
+router.post('/receiving-orders', checkPermission('wms.receiving.create_order'), createReceivingOrder);
+router.put('/receiving-orders/:id', checkPermission('wms.receiving.verify_goods'), updateReceivingOrder);
+router.get('/receiving-orders', checkPermission('wms.receiving.view'), getReceivingOrders);
+router.post('/returns', checkPermission('wms.receiving.create_order'), createReturnOrder);
+router.get('/e-invoice/export/:receivingId', checkPermission('wms.receiving.view'), exportEtaEInvoicePayload);
+module.exports = router;

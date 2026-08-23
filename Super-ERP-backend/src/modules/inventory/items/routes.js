@@ -1,0 +1,15 @@
+const express = require('express');
+const router = express.Router();
+const { checkPermission } = require('../../../middleware/authorize');
+const { getInventoryItems, createInventoryItem, updateInventoryItem, deleteInventoryItem, getStockLevels, getStockTransactions, getInventoryKPIs, scanBarcode, getFefoRecommendation, getUomConversions } = { ...require('../../../controllers/inventoryController'), ...require('../../../controllers/inventoryExtensionsController') };
+router.get('/items', checkPermission('wms.items.view'), getInventoryItems);
+router.post('/items', checkPermission('wms.items.create'), createInventoryItem);
+router.put('/items/:id', checkPermission('wms.items.edit'), updateInventoryItem);
+router.delete('/items/:id', checkPermission('wms.items.delete'), deleteInventoryItem);
+router.get('/stock', checkPermission('wms.items.view'), getStockLevels);
+router.get('/transactions', checkPermission('wms.items.view'), getStockTransactions);
+router.get('/kpis', checkPermission('wms.items.view'), getInventoryKPIs);
+router.get('/barcode/scan/:barcode', checkPermission('wms.items.view'), scanBarcode);
+router.get('/fefo/recommend', checkPermission('wms.items.view'), getFefoRecommendation);
+router.get('/uoms', checkPermission('wms.items.view'), getUomConversions);
+module.exports = router;
