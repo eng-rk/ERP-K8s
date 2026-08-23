@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import API from '../../../../services/api';
-import logo from '../assets/logo.png';
+import logo from '/logo.png';
 import { Icon } from '../../../../utils/iconMapper';
 
 const CampaignFormPage = () => {
@@ -53,7 +53,6 @@ const CampaignFormPage = () => {
         boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
         width: '100%', maxWidth: 480, padding: 40,
       }}>
-        {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28 }}>
           <img src={logo} alt="Logo" style={{ width: 36, height: 36, objectFit: 'contain' }} />
           <span style={{
@@ -85,7 +84,6 @@ const CampaignFormPage = () => {
             <p style={{ color: '#6B7280', fontSize: 14 }}>Your information has been received. We'll be in touch shortly.</p>
           </div>
         ) : (
-
           <>
             <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6, color: '#1F2937' }}>{campaign?.name}</h1>
             <p style={{ color: '#6B7280', fontSize: 14, marginBottom: 28 }}>
