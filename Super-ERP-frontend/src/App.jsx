@@ -63,14 +63,12 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-
       <Route path="/dashboard" element={<ProtectedRoute><AppLayout><DashboardPage /></AppLayout></ProtectedRoute>} />
 
       {/* CRM owns all CRM feature routes. */}
       {crmRoutes({ ProtectedRoute, AppLayout })}
 
       <Route path="/products" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'System Architect', 'Sales Agent', 'Sales Manager', 'Executive User']}><AppLayout><ProductsPage /></AppLayout></ProtectedRoute>} />
-
       <Route path="/inventory" element={<ProtectedRoute allowedRoles={inventoryRoles}><AppLayout><InventoryDashboard /></AppLayout></ProtectedRoute>} />
       <Route path="/inventory/items" element={<ProtectedRoute allowedRoles={inventoryRoles}><AppLayout><InventoryItemsPage /></AppLayout></ProtectedRoute>} />
       <Route path="/inventory/items/:id" element={<ProtectedRoute allowedRoles={inventoryRoles}><AppLayout><InventoryItemDetail /></AppLayout></ProtectedRoute>} />
@@ -85,7 +83,6 @@ const AppRoutes = () => {
       <Route path="/inventory/warehouses" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager']}><AppLayout><WarehousesPage /></AppLayout></ProtectedRoute>} />
       <Route path="/inventory/pick-tasks" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager', 'Shipping Clerk', 'Warehouse Operator']}><AppLayout><PickTaskPage /></AppLayout></ProtectedRoute>} />
       <Route path="/inventory/reports" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager', 'Inventory Clerk']}><AppLayout><InventoryReportsPage /></AppLayout></ProtectedRoute>} />
-
       <Route path="/supply-chain" element={<ProtectedRoute allowedRoles={inventoryRoles}><AppLayout><SupplyChainPage /></AppLayout></ProtectedRoute>} />
       <Route path="/supply-chain/:section" element={<ProtectedRoute allowedRoles={inventoryRoles}><AppLayout><SupplyChainPage /></AppLayout></ProtectedRoute>} />
 
@@ -105,7 +102,7 @@ const AppRoutes = () => {
       <Route path="/ess/payroll" element={<ProtectedRoute><AppLayout><MyPayrollPage /></AppLayout></ProtectedRoute>} />
 
       <Route path="/devtools" element={<ProtectedRoute allowedRoles={['CRM Developer', 'System Architect', 'Super CRM Administrator']}><AppLayout><DevToolsPage /></AppLayout></ProtectedRoute>} />
-      <Route path="/pay/:token" element={<PublicRoute><PaymentPage /></PublicRoute>} />
+      <Route path="/pay/:token" element={<PaymentPage />} />
       <Route path="/unauthorized" element={<AppLayout><UnauthorizedPage /></AppLayout>} />
       <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
     </Routes>
