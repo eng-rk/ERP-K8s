@@ -1,0 +1,12 @@
+const express = require('express');
+const router = express.Router();
+const { postInventoryAdjustment, approveAdjustment, rejectAdjustment, createAdjustment, getAdjustments } = require('../../../controllers/inventoryController');
+const { protect } = require('../../../middleware/auth');
+const { checkPermission } = require('../../../middleware/authorize');
+router.use(protect);
+router.post('/:id/post', checkPermission('wms.adjustments.approve'), postInventoryAdjustment);
+router.post('/:id/approve', checkPermission('wms.adjustments.approve'), approveAdjustment);
+router.post('/:id/reject', checkPermission('wms.adjustments.reject'), rejectAdjustment);
+router.post('/', checkPermission('wms.adjustments.create_request'), createAdjustment);
+router.get('/', checkPermission('wms.adjustments.view'), getAdjustments);
+module.exports = router;
