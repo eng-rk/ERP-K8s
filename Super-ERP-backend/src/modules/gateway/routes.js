@@ -1,0 +1,22 @@
+const express = require('express');
+const { protect } = require('../../middleware/auth');
+const controller = require('../../controllers/gatewayController');
+
+const router = express.Router();
+router.get('/', protect, controller.getGateways);
+router.post('/', protect, controller.saveGateway);
+router.delete('/:id', protect, controller.deleteGateway);
+router.get('/vendors', protect, controller.getVendors);
+router.get('/bank-accounts', protect, controller.getBankAccounts);
+router.post('/bank-accounts', protect, controller.saveBankAccount);
+router.put('/bank-accounts/:id/verify', protect, controller.verifyBankAccount);
+router.delete('/bank-accounts/:id', protect, controller.deleteBankAccount);
+router.get('/company-accounts', protect, controller.getCompanyAccounts);
+router.post('/company-accounts', protect, controller.saveCompanyAccount);
+router.put('/company-accounts/:id/verify', protect, controller.verifyCompanyAccount);
+router.delete('/company-accounts/:id', protect, controller.deleteCompanyAccount);
+router.get('/runs/:id/readiness', protect, controller.getReleaseReadiness);
+router.post('/webhook', controller.handleGatewayWebhook);
+router.get('/transactions', protect, controller.getTransactions);
+router.post('/transactions/:id/retry', protect, controller.retryTransaction);
+module.exports = router;
