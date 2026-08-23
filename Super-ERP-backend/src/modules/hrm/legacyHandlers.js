@@ -1,0 +1,42 @@
+// Temporary compatibility adapter for HRM handlers that are not yet independently
+// service-extracted. Feature controllers import only this module, so the legacy
+// controller is isolated behind one boundary and can be removed feature-by-feature.
+const legacy = require('../../controllers/hrmController');
+
+module.exports = {
+  upsertContract: legacy.upsertContract,
+  uploadSignedContract: legacy.uploadSignedContract,
+  getContracts: legacy.getContracts,
+  getMyContract: legacy.getMyContract,
+  updateGovDocs: legacy.updateGovDocs,
+  uploadGovDocFile: legacy.uploadGovDocFile,
+  verifyGovDoc: legacy.verifyGovDoc,
+  getLeaveBalance: legacy.getLeaveBalance,
+  createLeaveRequest: legacy.createLeaveRequest,
+  getLeaveRequests: legacy.getLeaveRequests,
+  updateLeaveStatus: legacy.updateLeaveStatus,
+  getGovDocTemplates: legacy.getGovDocTemplates,
+  createGovDocTemplate: legacy.createGovDocTemplate,
+  deleteGovDocTemplate: legacy.deleteGovDocTemplate,
+  createKPI: legacy.createKPI,
+  getKPIs: legacy.getKPIs,
+  createVacancy: legacy.createVacancy,
+  getVacancies: legacy.getVacancies,
+  createCandidate: legacy.createCandidate,
+  getCandidates: legacy.getCandidates,
+  updateCandidateStatus: legacy.updateCandidateStatus,
+  addCandidateFeedback: legacy.addCandidateFeedback,
+  createPartnership: legacy.createPartnership,
+  getPartnerships: legacy.getPartnerships,
+  createSuggestion: legacy.createSuggestion,
+  getSuggestions: legacy.getSuggestions,
+  updateSuggestionStatus: legacy.updateSuggestionStatus,
+  getDetailedSchedule: legacy.getDetailedSchedule,
+  updateDetailedSchedule: legacy.updateDetailedSchedule,
+  updateAuxStatus: legacy.updateAuxStatus,
+  getTeamAux: legacy.getTeamAux,
+  updateRtmFlag: legacy.updateRtmFlag,
+  getAuxReport: legacy.getAuxReport,
+  upsertAuxSchedule: legacy.upsertAuxSchedule,
+  getAuxSchedules: legacy.getAuxSchedules,
+};
