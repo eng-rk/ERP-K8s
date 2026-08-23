@@ -1,10 +1,6 @@
 const express = require('express');
 const { protect, enforceSelfScope } = require('../../../../middleware/auth');
-const { getMySchedule } = require('../../../../controllers/essController');
-
+const controller = require('./controller');
 const router = express.Router();
-const self = [protect, enforceSelfScope];
-
-router.get('/schedule', self, getMySchedule);
-
+router.get('/schedule', protect, enforceSelfScope, controller.getMySchedule);
 module.exports = router;
