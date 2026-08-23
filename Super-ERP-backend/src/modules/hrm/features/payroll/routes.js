@@ -1,7 +1,7 @@
 const express = require('express');
 const { protect } = require('../../../../middleware/auth');
 const { checkPermission } = require('../../../../middleware/authorize');
-const controller = require('../../../../controllers/payrollController');
+const controller = require('../../../../controllers/hrmController');
 
 const router = express.Router();
 
