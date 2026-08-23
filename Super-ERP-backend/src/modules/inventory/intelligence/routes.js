@@ -1,0 +1,15 @@
+const express = require('express');
+const router = express.Router();
+const { getInventoryValuation, getABCClassification, getDeadStockReport, getReorderAlerts, getExpiryAlerts, getPutawaySuggestion } = require('../../../controllers/inventoryController');
+const { getValuationDetailed } = require('../../../controllers/inventoryExtensionsController');
+const { protect } = require('../../../middleware/auth');
+const { checkPermission } = require('../../../middleware/authorize');
+router.use(protect);
+router.get('/reports/valuation', checkPermission('wms.items.view'), getInventoryValuation);
+router.get('/reports/valuation-detailed', checkPermission('wms.items.view'), getValuationDetailed);
+router.get('/reports/abc', checkPermission('wms.items.view'), getABCClassification);
+router.get('/reports/dead-stock', checkPermission('wms.items.view'), getDeadStockReport);
+router.get('/alerts/reorder', checkPermission('wms.items.view'), getReorderAlerts);
+router.get('/alerts/expiry', checkPermission('wms.items.view'), getExpiryAlerts);
+router.get('/putaway/suggest', checkPermission('wms.items.view'), getPutawaySuggestion);
+module.exports = router;
