@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getOffersByLead, createOffer, updateOffer, deleteOffer, sendOffer, getTemplates, createTemplate, updateTemplate, deleteTemplate, uploadOfferImage, deleteOfferImage, initiateAvayaCall, getOfferByLocator, getOfferCommunicationLog, addOfferCommunicationReply, getOfferById } = require('../../../controllers/offerController');
+const { getOffersByLead, createOffer, updateOffer, deleteOffer, sendOffer, getTemplates, createTemplate, updateTemplate, deleteTemplate, uploadOfferImage, deleteOfferImage, initiateAvayaCall, getOfferByLocator, getOfferCommunicationLog, addOfferCommunicationReply, getOfferById } = require('./controller');
 const { applyDiscount } = require('../../../controllers/settingsController');
 const { protect } = require('../../../middleware/auth');
 const { checkPermission } = require('../../../middleware/authorize');
