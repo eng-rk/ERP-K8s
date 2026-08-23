@@ -1,5 +1,5 @@
 const express = require('express');
-const controller = require('../../../../controllers/paymentController');
+const controller = require('./controller');
 
 const router = express.Router();
 router.get('/:token', controller.getPublicOfferByToken);
