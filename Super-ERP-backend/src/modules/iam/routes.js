@@ -1,2 +1,10 @@
-// Transitional module boundary: keeps the public IAM API stable while domain files are migrated.
-module.exports = require('../../routes/permissionRoutes');
+const express = require('express');
+const permissionRoutes = require('./features/permissions/routes');
+const roleRoutes = require('./features/roles/routes');
+const userRoutes = require('./features/users/routes');
+
+const router = express.Router();
+router.use(permissionRoutes);
+router.use(roleRoutes);
+router.use(userRoutes);
+module.exports = router;
