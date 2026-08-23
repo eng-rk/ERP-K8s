@@ -1,12 +1,8 @@
 const express = require('express');
 const { protect, enforceSelfScope } = require('../../../../middleware/auth');
-const controller = require('../../../../controllers/essController');
-
+const controller = require('./controller');
 const router = express.Router();
-const self = [protect, enforceSelfScope];
-
-router.get('/payroll/payslips', self, controller.getMyPayslips);
-router.get('/payroll/payslips/:id', self, controller.getMyPayslipById);
-router.get('/payroll/history', self, controller.getMyPaymentHistory);
-
+router.get('/payroll/payslips', protect, enforceSelfScope, controller.getMyPayslips);
+router.get('/payroll/payslips/:id', protect, enforceSelfScope, controller.getMyPayslipById);
+router.get('/payroll/history', protect, enforceSelfScope, controller.getMyPaymentHistory);
 module.exports = router;
