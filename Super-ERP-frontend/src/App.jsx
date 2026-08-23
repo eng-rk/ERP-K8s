@@ -6,26 +6,12 @@ import Sidebar from './components/Sidebar';
 import AuxTopBar from './components/AuxTopBar';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
-import LeadsPage from './modules/crm/features/leads/LeadsPage';
-import LeadDistributionPage from './modules/crm/features/leads/LeadDistributionPage';
-import LeadDetailsPage from './modules/crm/features/leads/LeadDetailsPage';
-import OfferDetailPage from './modules/crm/features/offers/OfferDetailPage';
-import BookingLookupPage from './modules/crm/features/bookings/BookingLookupPage';
-import TicketsPage from './modules/crm/features/tickets/TicketsPage';
-import AnalyticsPage from './modules/crm/features/analytics/AnalyticsPage';
-import SalesKanbanPage from './modules/crm/features/sales/SalesKanbanPage';
-import ExecutiveDashboardPage from './modules/crm/features/sales/ExecutiveDashboardPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
-import CampaignsPage from './modules/crm/features/campaigns/CampaignsPage';
 import UsersPage from './pages/UsersPage';
 import UserProfilePage from './pages/UserProfilePage';
 import TeamsPage from './pages/TeamsPage';
 import SettingsPage from './pages/SettingsPage';
 import DevToolsPage from './pages/DevToolsPage';
-import CampaignFormPage from './modules/crm/features/campaigns/CampaignFormPage';
-import EmailsPage from './modules/crm/features/email/EmailsPage';
-import SentEmailsPage from './modules/crm/features/email/SentEmailsPage';
-import EmailComposer from './modules/crm/features/email/EmailComposer';
 import RtmMonitorPage from './pages/RtmMonitorPage';
 import HrmDashboardPage from './pages/hrm/HrmDashboardPage';
 import PersonalPage from './pages/hrm/PersonalPage';
@@ -35,7 +21,6 @@ import TalentAcquisitionPage from './pages/hrm/TalentAcquisitionPage';
 import PartnershipsPage from './pages/hrm/PartnershipsPage';
 import MySchedulePage from './pages/ess/MySchedulePage';
 import MyPayrollPage from './pages/ess/MyPayrollPage';
-import { useAuth } from './context/AuthContext';
 import PaymentPage from './pages/PaymentPage';
 import ProductsPage from './pages/ProductsPage';
 import OnboardingModal from './components/OnboardingModal';
@@ -54,661 +39,75 @@ import WarehousesPage from './pages/WarehousesPage';
 import PickTaskPage from './pages/PickTaskPage';
 import InventoryReportsPage from './pages/InventoryReportsPage';
 import SupplyChainPage from './pages/SupplyChainPage';
+import { crmRoutes } from './modules/crm/routes';
+import { useAuth } from './context/AuthContext';
 
-// Layout wrapper: renders Sidebar + content for authenticated pages
-const AppLayout = ({ children }) => {
-  return (
-    <div className="app-layout">
-      <Sidebar />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <AuxTopBar />
-        <main className="main-content" style={{ marginTop: 48 }}>{children}</main>
-      </div>
+const AppLayout = ({ children }) => (
+  <div className="app-layout">
+    <Sidebar />
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <AuxTopBar />
+      <main className="main-content" style={{ marginTop: 48 }}>{children}</main>
     </div>
-  );
-};
+  </div>
+);
 
-// Inner router — needs access to AuthContext
+const inventoryRoles = [
+  'Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager',
+  'Receiving Clerk', 'Shipping Clerk', 'Warehouse Operator', 'Inventory Clerk', 'Quality Inspector'
+];
+
 const AppRoutes = () => {
   const { user } = useAuth();
 
-  const analyticsRoles = [
-    'Super CRM Administrator', 'Executive User',
-    'Business Analyst', 'System Architect'
-  ];
-
   return (
     <Routes>
-      {/* Public */}
-      <Route
-        path="/login"
-        element={
-          <PublicRoute>
-            <LoginPage />
-          </PublicRoute>
-        }
-      />
+      <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
 
-      {/* Protected: Dashboard — all authenticated roles */}
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <DashboardPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/dashboard" element={<ProtectedRoute><AppLayout><DashboardPage /></AppLayout></ProtectedRoute>} />
 
-      {/* Protected: Leads table */}
-      <Route
-        path="/leads"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <LeadsPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
+      {/* CRM owns all CRM feature routes. */}
+      {crmRoutes({ ProtectedRoute, AppLayout })}
 
-      {/* Protected: Lead Distribution */}
-      <Route
-        path="/leads/distribution"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Sales Manager'
-          ]}>
-            <AppLayout>
-              <LeadDistributionPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/products" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'System Architect', 'Sales Agent', 'Sales Manager', 'Executive User']}><AppLayout><ProductsPage /></AppLayout></ProtectedRoute>} />
 
-      {/* Protected: Lead Details (Unified Offers/Notes etc) */}
-      <Route
-        path="/leads/:id"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <LeadDetailsPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/inventory" element={<ProtectedRoute allowedRoles={inventoryRoles}><AppLayout><InventoryDashboard /></AppLayout></ProtectedRoute>} />
+      <Route path="/inventory/items" element={<ProtectedRoute allowedRoles={inventoryRoles}><AppLayout><InventoryItemsPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/inventory/items/:id" element={<ProtectedRoute allowedRoles={inventoryRoles}><AppLayout><InventoryItemDetail /></AppLayout></ProtectedRoute>} />
+      <Route path="/inventory/stock" element={<ProtectedRoute allowedRoles={inventoryRoles}><AppLayout><StockOverviewPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/inventory/transactions" element={<ProtectedRoute allowedRoles={inventoryRoles}><AppLayout><TransactionsPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/inventory/receiving" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager', 'Receiving Clerk', 'Quality Inspector']}><AppLayout><ReceivingPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/inventory/shipping" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager', 'Shipping Clerk', 'Warehouse Operator']}><AppLayout><ShippingPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/inventory/transfers" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager', 'Warehouse Operator']}><AppLayout><TransfersPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/inventory/adjustments" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager', 'Inventory Clerk']}><AppLayout><AdjustmentsPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/inventory/cycle-counts" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager', 'Warehouse Operator', 'Quality Inspector']}><AppLayout><CycleCountPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/inventory/physical-inventories" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager', 'Warehouse Operator']}><AppLayout><PhysicalInventoryPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/inventory/warehouses" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager']}><AppLayout><WarehousesPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/inventory/pick-tasks" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager', 'Shipping Clerk', 'Warehouse Operator']}><AppLayout><PickTaskPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/inventory/reports" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager', 'Inventory Clerk']}><AppLayout><InventoryReportsPage /></AppLayout></ProtectedRoute>} />
 
-      {/* Protected: Offer Details */}
-      <Route
-        path="/offers/:id"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <OfferDetailPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/supply-chain" element={<ProtectedRoute allowedRoles={inventoryRoles}><AppLayout><SupplyChainPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/supply-chain/:section" element={<ProtectedRoute allowedRoles={inventoryRoles}><AppLayout><SupplyChainPage /></AppLayout></ProtectedRoute>} />
 
-      {/* Protected: Products (business-model gated; visible for product/both) */}
-      <Route
-        path="/products"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Sales Agent', 'Sales Manager', 'Executive User'
-          ]}>
-            <AppLayout>
-              <ProductsPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/teams" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'System Architect', 'Sales Manager', 'Sales Agent', 'Customer Support Manager', 'Customer Support Agent', 'Marketing Manager', 'Marketing Specialist']}><AppLayout><TeamsPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/users" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'System Architect']}><AppLayout><UsersPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/users/:id" element={<ProtectedRoute><AppLayout><UserProfilePage /></AppLayout></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute allowedRoles={['Super CRM Administrator']}><AppLayout><SettingsPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/rtm" element={<ProtectedRoute allowedRoles={['RTM Team Member', 'Super CRM Administrator', 'HRM System Administrator', 'HR Manager']}><AppLayout><RtmMonitorPage /></AppLayout></ProtectedRoute>} />
 
-      {/* Protected: Inventory (business-model gated; visible for product/both) */}
-      <Route
-        path="/inventory"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager',
-            'Receiving Clerk', 'Shipping Clerk', 'Warehouse Operator', 'Inventory Clerk', 'Quality Inspector'
-          ]}>
-            <AppLayout>
-              <InventoryDashboard />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/inventory/items"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager',
-            'Receiving Clerk', 'Shipping Clerk', 'Warehouse Operator', 'Inventory Clerk', 'Quality Inspector'
-          ]}>
-            <AppLayout>
-              <InventoryItemsPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/inventory/items/:id"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager',
-            'Receiving Clerk', 'Shipping Clerk', 'Warehouse Operator', 'Inventory Clerk', 'Quality Inspector'
-          ]}>
-            <AppLayout>
-              <InventoryItemDetail />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/inventory/stock"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager',
-            'Receiving Clerk', 'Shipping Clerk', 'Warehouse Operator', 'Inventory Clerk', 'Quality Inspector'
-          ]}>
-            <AppLayout>
-              <StockOverviewPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/inventory/transactions"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager',
-            'Receiving Clerk', 'Shipping Clerk', 'Warehouse Operator', 'Inventory Clerk', 'Quality Inspector'
-          ]}>
-            <AppLayout>
-              <TransactionsPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/inventory/receiving"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager',
-            'Receiving Clerk', 'Quality Inspector'
-          ]}>
-            <AppLayout>
-              <ReceivingPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/inventory/shipping"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager',
-            'Shipping Clerk', 'Warehouse Operator'
-          ]}>
-            <AppLayout>
-              <ShippingPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/inventory/transfers"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager',
-            'Warehouse Operator'
-          ]}>
-            <AppLayout>
-              <TransfersPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/inventory/adjustments"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager',
-            'Inventory Clerk'
-          ]}>
-            <AppLayout>
-              <AdjustmentsPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/inventory/cycle-counts"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager',
-            'Warehouse Operator', 'Quality Inspector'
-          ]}>
-            <AppLayout>
-              <CycleCountPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/inventory/physical-inventories"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager',
-            'Warehouse Operator'
-          ]}>
-            <AppLayout>
-              <PhysicalInventoryPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/inventory/warehouses"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager'
-          ]}>
-            <AppLayout>
-              <WarehousesPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/inventory/pick-tasks"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager',
-            'Shipping Clerk', 'Warehouse Operator'
-          ]}>
-            <AppLayout>
-              <PickTaskPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/inventory/reports"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager', 'Inventory Clerk'
-          ]}>
-            <AppLayout>
-              <InventoryReportsPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/hrm" element={<ProtectedRoute><AppLayout><HrmDashboardPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/hrm/personal" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'HRM System Administrator', 'HR Manager', 'HR Specialist (Generalist)', 'HR Business Partner', 'Employee (General User)']}><AppLayout><PersonalPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/hrm/payroll" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'HRM System Administrator', 'HR Manager', 'Payroll Specialist', 'Employee (General User)']}><AppLayout><PayrollPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/hrm/training" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'HRM System Administrator', 'HR Manager', 'Training and Development Specialist', 'Employee (General User)']}><AppLayout><TrainingPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/hrm/talent" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'HRM System Administrator', 'HR Manager', 'Recruitment Specialist (Talent Acquisition)']}><AppLayout><TalentAcquisitionPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/hrm/partnerships" element={<ProtectedRoute allowedRoles={['Super CRM Administrator', 'HRM System Administrator', 'HR Manager', 'HR Business Partner', 'Employee (General User)']}><AppLayout><PartnershipsPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/ess/schedule" element={<ProtectedRoute><AppLayout><MySchedulePage /></AppLayout></ProtectedRoute>} />
+      <Route path="/ess/payroll" element={<ProtectedRoute><AppLayout><MyPayrollPage /></AppLayout></ProtectedRoute>} />
 
-      <Route
-        path="/supply-chain"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager',
-            'Receiving Clerk', 'Shipping Clerk', 'Warehouse Operator', 'Inventory Clerk', 'Quality Inspector'
-          ]}>
-            <AppLayout>
-              <SupplyChainPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/supply-chain/:section"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Inventory Manager', 'Warehouse Manager',
-            'Receiving Clerk', 'Shipping Clerk', 'Warehouse Operator', 'Inventory Clerk', 'Quality Inspector'
-          ]}>
-            <AppLayout>
-              <SupplyChainPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Protected: Technical Issues */}
-        <Route
-          path="/tickets"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <TicketsPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Protected: Booking Lookup */}
-        <Route
-          path="/bookings"
-          element={
-            <ProtectedRoute allowedRoles={[
-              'Sales Agent', 'Sales Manager',
-              'Customer Support Agent', 'Customer Support Manager',
-              'CRM Developer', 'CRM Consultant', 'System Architect', 'Super CRM Administrator'
-            ]}>
-              <AppLayout>
-                <BookingLookupPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-
-      {/* Protected: Analytics */}
-      <Route
-        path="/analytics"
-        element={
-          <ProtectedRoute allowedRoles={analyticsRoles}>
-            <AppLayout>
-              <AnalyticsPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Phase 6: Sales Kanban board */}
-      <Route
-        path="/kanban"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'Sales Agent', 'Sales Manager',
-            'Executive User', 'System Architect', 'Business Analyst'
-          ]}>
-            <AppLayout>
-              <SalesKanbanPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Phase 6: Executive Dashboard */}
-      <Route
-        path="/executive"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'Executive User',
-            'Business Analyst', 'System Architect'
-          ]}>
-            <AppLayout>
-              <ExecutiveDashboardPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Protected: Campaigns */}
-      <Route
-        path="/campaigns"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'Marketing Specialist',
-            'Marketing Manager', 'Executive User', 'Business Analyst', 'System Architect'
-          ]}>
-            <AppLayout>
-              <CampaignsPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Protected: Teams */}
-      <Route
-        path="/teams"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect',
-            'Sales Manager', 'Sales Agent',
-            'Customer Support Manager', 'Customer Support Agent',
-            'Marketing Manager', 'Marketing Specialist'
-          ]}>
-            <AppLayout>
-              <TeamsPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Protected: User Management */}
-      <Route
-        path="/users"
-        element={
-          <ProtectedRoute allowedRoles={['Super CRM Administrator', 'System Architect']}>
-            <AppLayout>
-              <UsersPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Protected: User Profile */}
-      <Route
-        path="/users/:id"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <UserProfilePage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Protected: System Settings */}
-      <Route
-        path="/settings"
-        element={
-          <ProtectedRoute allowedRoles={['Super CRM Administrator']}>
-            <AppLayout>
-              <SettingsPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Protected: Internal Emails */}
-      <Route
-        path="/emails"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <EmailsPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Protected: Sent Emails / Email History */}
-      <Route
-        path="/emails/sent"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <SentEmailsPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      
-      {/* Protected: Email Composer */}
-      <Route
-        path="/email-composer"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'System Architect', 'Sales Agent', 'Sales Manager'
-          ]}>
-            <AppLayout>
-              <EmailComposer />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Protected: RTM Live Monitor */}
-      <Route
-        path="/rtm"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'RTM Team Member', 'Super CRM Administrator',
-            'HRM System Administrator', 'HR Manager'
-          ]}>
-            <AppLayout>
-              <RtmMonitorPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Protected: HRM Dashboard */}
-      <Route
-        path="/hrm"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <HrmDashboardPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Protected: HRM Personal */}
-      <Route
-        path="/hrm/personal"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'HRM System Administrator', 'HR Manager',
-            'HR Specialist (Generalist)', 'HR Business Partner', 'Employee (General User)'
-          ]}>
-            <AppLayout>
-              <PersonalPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Protected: HRM Payroll */}
-      <Route
-        path="/hrm/payroll"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'HRM System Administrator', 'HR Manager',
-            'Payroll Specialist', 'Employee (General User)'
-          ]}>
-            <AppLayout>
-              <PayrollPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Protected: Employee Self-Service — My Schedule */}
-      <Route
-        path="/ess/schedule"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <MySchedulePage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Protected: Employee Self-Service — My Payroll */}
-      <Route
-        path="/ess/payroll"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <MyPayrollPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Protected: HRM Training */}
-      <Route
-        path="/hrm/training"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'HRM System Administrator', 'HR Manager',
-            'Training and Development Specialist', 'Employee (General User)'
-          ]}>
-            <AppLayout>
-              <TrainingPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Protected: HRM Talent Acquisition */}
-      <Route
-        path="/hrm/talent"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'HRM System Administrator', 'HR Manager',
-            'Recruitment Specialist (Talent Acquisition)'
-          ]}>
-            <AppLayout>
-              <TalentAcquisitionPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Protected: HRM Partnerships */}
-      <Route
-        path="/hrm/partnerships"
-        element={
-          <ProtectedRoute allowedRoles={[
-            'Super CRM Administrator', 'HRM System Administrator', 'HR Manager',
-            'HR Business Partner', 'Employee (General User)'
-          ]}>
-            <AppLayout>
-              <PartnershipsPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Protected: CRM Dev Tools */}
-      <Route
-        path="/devtools"
-        element={
-          <ProtectedRoute allowedRoles={['CRM Developer', 'System Architect', 'Super CRM Administrator']}>
-            <AppLayout>
-              <DevToolsPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Public: Campaign Lead Form */}
-      <Route path="/form/:slug" element={<CampaignFormPage />} />
-
-      {/* Public: Offer Payment Page */}
-      <Route path="/pay/:token" element={<PaymentPage />} />
-
-      {/* Unauthorized */}
-      <Route
-        path="/unauthorized"
-        element={
-          <AppLayout>
-            <UnauthorizedPage />
-          </AppLayout>
-        }
-      />
-
-      {/* Catch-all */}
-      <Route
-        path="*"
-        element={<Navigate to={user ? '/dashboard' : '/login'} replace />}
-      />
+      <Route path="/devtools" element={<ProtectedRoute allowedRoles={['CRM Developer', 'System Architect', 'Super CRM Administrator']}><AppLayout><DevToolsPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/pay/:token" element={<PublicRoute><PaymentPage /></PublicRoute>} />
+      <Route path="/unauthorized" element={<AppLayout><UnauthorizedPage /></AppLayout>} />
+      <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
     </Routes>
   );
 };
