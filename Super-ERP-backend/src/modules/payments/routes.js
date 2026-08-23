@@ -1,2 +1,6 @@
-// Transitional module boundary: keeps the public payment API stable while domain files are migrated.
-module.exports = require('../../routes/paymentRoutes');
+const express = require('express');
+const publicPaymentRoutes = require('./features/public/routes');
+
+const router = express.Router();
+router.use(publicPaymentRoutes);
+module.exports = router;
