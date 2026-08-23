@@ -18,10 +18,8 @@ connectDB().catch(err => {
 
 const app = express();
 
-// Security Headers with Helmet
 app.use(helmet({ contentSecurityPolicy: false }));
 
-// Rate Limiter Setup
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 1000,
@@ -37,7 +35,6 @@ const authLimiter = rateLimit({
 app.use('/api/', globalLimiter);
 app.use('/api/auth/login', authLimiter);
 
-// Prometheus Metrics Setup
 promClient.collectDefaultMetrics({ prefix: 'core360_backend_' });
 
 const httpRequestDurationMicroseconds = new promClient.Histogram({
@@ -57,7 +54,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Expose Prometheus Metrics Endpoint
 app.get('/metrics', async (req, res) => {
   try {
     res.setHeader('Content-Type', promClient.register.contentType);
@@ -71,7 +67,6 @@ const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
   ? process.env.CORS_ALLOWED_ORIGINS.split(',').map(o => o.trim())
   : [];
 
-// Base CORS config using the standard package
 const corsMiddleware = cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
@@ -84,7 +79,6 @@ const corsMiddleware = cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 });
 
-// Self-contained wrapper to intercept CORS violations and return HTTP 403 Forbidden
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
@@ -108,7 +102,6 @@ ensureDirectories();
 
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-// Health Check Endpoints
 app.get('/health/live', (req, res) => {
   res.status(200).json({
     status: 'UP',
@@ -129,7 +122,7 @@ app.get('/health/ready', (req, res) => {
 
 const authRoutes = require('./routes/authRoutes');
 const webhookRoutes = require('./routes/webhookRoutes');
-const leadRoutes = require('./routes/leadRoutes');
+const leadRoutes = require('./modules/crm/leads/routes');
 const ticketRoutes = require('./routes/ticketRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const campaignRoutes = require('./routes/campaignRoutes');
@@ -245,22 +238,16 @@ const runStartupTasks = () => {
           const Offer = require('./models/Offer');
           const now = new Date();
           const result = await Offer.updateMany(
-            {
-              status: { $in: ['Sent', 'Viewed'] },
-              validUntil: { $lt: now }
-            },
+            { status: { $in: ['Sent', 'Viewed'] }, validUntil: { $lt: now } },
             { $set: { status: 'Expired' } }
           );
-          if (result.modifiedCount > 0) {
-            console.log(`[Cron] Expired ${result.modifiedCount} overdue offer(s)`);
-          }
+          if (result.modifiedCount > 0) console.log(`[Cron] Expired ${result.modifiedCount} overdue offer(s)`);
         } catch (err) {
           console.error('[Cron] Offer expiry error:', err.message);
         }
       }));
       console.log('[Cron] Hourly offer expiry job registered');
 
-      // ── Inventory: daily expiry scan (6:00 AM) ──────────────────────────────
       scheduledTasks.push(cron.schedule('0 6 * * *', async () => {
         try {
           const Lot = require('./models/Lot');
@@ -268,97 +255,52 @@ const runStartupTasks = () => {
           const User = require('./models/User');
           const now = new Date();
           const horizon30 = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-
-          // Block lots that are past expiry
           const expired = await Lot.updateMany(
             { expiryDate: { $lte: now }, status: 'Unrestricted', quantity: { $gt: 0 } },
             { $set: { status: 'Blocked' } }
           );
-          if (expired.modifiedCount > 0) {
-            console.log(`[Cron:Inventory] Blocked ${expired.modifiedCount} expired lot(s)`);
-          }
-
-          // Notify inventory managers about lots expiring within 30 days
-          const expiringLots = await Lot.find({
-            expiryDate: { $gt: now, $lte: horizon30 },
-            status: 'Unrestricted',
-            quantity: { $gt: 0 }
-          }).populate('item', 'sku name').populate('warehouse', 'code name');
-
+          if (expired.modifiedCount > 0) console.log(`[Cron:Inventory] Blocked ${expired.modifiedCount} expired lot(s)`);
+          const expiringLots = await Lot.find({ expiryDate: { $gt: now, $lte: horizon30 }, status: 'Unrestricted', quantity: { $gt: 0 } }).populate('item', 'sku name').populate('warehouse', 'code name');
           if (expiringLots.length > 0) {
             const managers = await User.find({ role: { $in: ['Inventory Manager', 'Warehouse Manager', 'Super CRM Administrator'] }, isActive: true });
             for (const mgr of managers) {
-              const lotList = expiringLots.slice(0, 15).map(l =>
-                `- Lot ${l.lotNumber} | ${l.item?.sku} ${l.item?.name} | Qty: ${l.quantity} | Expires: ${new Date(l.expiryDate).toLocaleDateString()} | ${l.warehouse?.code}`
-              ).join('\n');
-              await Email.create({
-                senderId: mgr._id,
-                recipientId: mgr._id,
-                subject: `[Inventory Alert] ${expiringLots.length} lot(s) expiring within 30 days`,
-                body: `Dear ${mgr.firstName},\n\nThe following lots are expiring within 30 days:\n\n${lotList}${expiringLots.length > 15 ? `\n...and ${expiringLots.length - 15} more.` : ''}\n\nPlease review and take action.\n\nBest regards,\nInventory System`
-              });
+              const lotList = expiringLots.slice(0, 15).map(l => `- Lot ${l.lotNumber} | ${l.item?.sku} ${l.item?.name} | Qty: ${l.quantity} | Expires: ${new Date(l.expiryDate).toLocaleDateString()} | ${l.warehouse?.code}`).join('\n');
+              await Email.create({ senderId: mgr._id, recipientId: mgr._id, subject: `[Inventory Alert] ${expiringLots.length} lot(s) expiring within 30 days`, body: `Dear ${mgr.firstName},\n\nThe following lots are expiring within 30 days:\n\n${lotList}${expiringLots.length > 15 ? `\n...and ${expiringLots.length - 15} more.` : ''}\n\nPlease review and take action.\n\nBest regards,\nInventory System` });
             }
             console.log(`[Cron:Inventory] Sent expiry alerts for ${expiringLots.length} lot(s) to ${managers.length} manager(s)`);
           }
-        } catch (err) {
-          console.error('[Cron:Inventory] Expiry scan error:', err.message);
-        }
+        } catch (err) { console.error('[Cron:Inventory] Expiry scan error:', err.message); }
       }));
       console.log('[Cron] Daily inventory expiry scan registered (6:00 AM)');
 
-      // ── Inventory: reorder point breach check (every 4 hours) ───────────────
       scheduledTasks.push(cron.schedule('0 */4 * * *', async () => {
         try {
           const StockLevel = require('./models/StockLevel');
           const InventoryItem = require('./models/InventoryItem');
           const Email = require('./models/Email');
           const User = require('./models/User');
-
           const breachedItems = await StockLevel.aggregate([
             { $group: { _id: '$item', totalAvailable: { $sum: '$available' } } },
             { $lookup: { from: 'inventoryitems', localField: '_id', foreignField: '_id', as: 'itemData' } },
             { $unwind: { path: '$itemData' } },
-            {
-              $match: {
-                'itemData.reorderPoint': { $gt: 0 },
-                $expr: { $lte: ['$totalAvailable', '$itemData.reorderPoint'] }
-              }
-            },
-            {
-              $project: {
-                sku: '$itemData.sku',
-                name: '$itemData.name',
-                reorderPoint: '$itemData.reorderPoint',
-                totalAvailable: 1
-              }
-            },
+            { $match: { 'itemData.reorderPoint': { $gt: 0 }, $expr: { $lte: ['$totalAvailable', '$itemData.reorderPoint'] } } },
+            { $project: { sku: '$itemData.sku', name: '$itemData.name', reorderPoint: '$itemData.reorderPoint', totalAvailable: 1 } },
             { $sort: { totalAvailable: 1 } }
           ]);
-
           if (breachedItems.length > 0) {
             const managers = await User.find({ role: { $in: ['Inventory Manager', 'Super CRM Administrator'] }, isActive: true });
             for (const mgr of managers) {
-              const itemList = breachedItems.slice(0, 20).map(i =>
-                `- ${i.sku} ${i.name} | Available: ${i.totalAvailable} | Reorder Point: ${i.reorderPoint}`
-              ).join('\n');
-              await Email.create({
-                senderId: mgr._id,
-                recipientId: mgr._id,
-                subject: `[Inventory Alert] ${breachedItems.length} item(s) below reorder point`,
-                body: `Dear ${mgr.firstName},\n\nThe following items have stock at or below their reorder point:\n\n${itemList}${breachedItems.length > 20 ? `\n...and ${breachedItems.length - 20} more.` : ''}\n\nPlease initiate replenishment orders.\n\nBest regards,\nInventory System`
-              });
+              const itemList = breachedItems.slice(0, 20).map(i => `- ${i.sku} ${i.name} | Available: ${i.totalAvailable} | Reorder Point: ${i.reorderPoint}`).join('\n');
+              await Email.create({ senderId: mgr._id, recipientId: mgr._id, subject: `[Inventory Alert] ${breachedItems.length} item(s) below reorder point`, body: `Dear ${mgr.firstName},\n\nThe following items have stock at or below their reorder point:\n\n${itemList}${breachedItems.length > 20 ? `\n...and ${breachedItems.length - 20} more.` : ''}\n\nPlease initiate replenishment orders.\n\nBest regards,\nInventory System` });
             }
             console.log(`[Cron:Inventory] Sent reorder alerts for ${breachedItems.length} item(s)`);
           }
-        } catch (err) {
-          console.error('[Cron:Inventory] Reorder breach check error:', err.message);
-        }
+        } catch (err) { console.error('[Cron:Inventory] Reorder breach check error:', err.message); }
       }));
       console.log('[Cron] Inventory reorder breach check registered (every 4 hours)');
     } else {
       console.log('[Startup] Background jobs disabled. Running in web-only mode.');
     }
-
   } catch (err) {
     console.error('[Startup] Error running startup tasks:', err.message);
   }
@@ -385,21 +327,11 @@ const gracefulShutdown = (signal) => {
     console.log('[Shutdown] Stop accepting new HTTP requests...');
     server.close(async () => {
       console.log('[Shutdown] Active HTTP connections drained. Stopping background tasks...');
-
-      if (scheduledTasks.length > 0) {
-        console.log('[Shutdown] Stopping active background cron tasks...');
-        scheduledTasks.forEach(task => task.stop());
-      }
-
-      if (campaignInterval) {
-        console.log('[Shutdown] Clearing campaign update interval...');
-        clearInterval(campaignInterval);
-      }
-
+      if (scheduledTasks.length > 0) scheduledTasks.forEach(task => task.stop());
+      if (campaignInterval) clearInterval(campaignInterval);
       try {
         console.log('[Shutdown] Closing MongoDB connection...');
         await mongoose.connection.close();
-        console.log('[Shutdown] MongoDB connection closed cleanly.');
         clearTimeout(forceExitTimeout);
         console.log('[Shutdown] Graceful shutdown completed successfully.');
         process.exit(0);
@@ -410,27 +342,9 @@ const gracefulShutdown = (signal) => {
       }
     });
   } else {
-    if (scheduledTasks.length > 0) {
-      console.log('[Shutdown] Stopping active background cron tasks...');
-      scheduledTasks.forEach(task => task.stop());
-    }
-
-    if (campaignInterval) {
-      console.log('[Shutdown] Clearing campaign update interval...');
-      clearInterval(campaignInterval);
-    }
-
-    mongoose.connection.close()
-      .then(() => {
-        clearTimeout(forceExitTimeout);
-        console.log('[Shutdown] MongoDB connection closed cleanly (script mode).');
-        process.exit(0);
-      })
-      .catch((err) => {
-        console.error('[Shutdown] Error closing MongoDB connection (script mode):', err);
-        clearTimeout(forceExitTimeout);
-        process.exit(1);
-      });
+    if (scheduledTasks.length > 0) scheduledTasks.forEach(task => task.stop());
+    if (campaignInterval) clearInterval(campaignInterval);
+    mongoose.connection.close().then(() => { clearTimeout(forceExitTimeout); process.exit(0); }).catch((err) => { console.error('[Shutdown] Error closing MongoDB connection (script mode):', err); clearTimeout(forceExitTimeout); process.exit(1); });
   }
 };
 
