@@ -1,0 +1,9 @@
+const legacy = require('../../../../controllers/permissionController');
+exports.getAllRoles = legacy.getAllRoles;
+exports.getRoleById = legacy.getRoleById;
+exports.createRole = legacy.createRole;
+exports.updateRole = legacy.updateRole;
+exports.deleteRole = legacy.deleteRole;
+exports.cloneRole = legacy.cloneRole;
+exports.getRoleTemplates = legacy.getRoleTemplates;
+exports.createRoleFromTemplate = legacy.createRoleFromTemplate;
