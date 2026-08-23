@@ -1,0 +1,11 @@
+const express = require('express');
+const { protect } = require('../../middleware/auth');
+const { checkPermission } = require('../../middleware/authorize');
+const controller = require('../../controllers/productController');
+
+const router = express.Router();
+router.get('/', protect, checkPermission('wms.items.view'), controller.getProducts);
+router.post('/', protect, checkPermission('wms.items.create'), controller.createProduct);
+router.put('/:id', protect, checkPermission('wms.items.edit'), controller.updateProduct);
+router.delete('/:id', protect, checkPermission('wms.items.delete'), controller.deleteProduct);
+module.exports = router;
