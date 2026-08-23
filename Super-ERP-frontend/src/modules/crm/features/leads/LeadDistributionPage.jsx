@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import API from '../services/api';
-import { Icon } from '../utils/iconMapper';
+import { useAuth } from '../../../../context/AuthContext';
+import API from '../../../../services/api';
+import { Icon } from '../../../../utils/iconMapper';
 
 const LeadDistributionPage = () => {
   const { user } = useAuth();

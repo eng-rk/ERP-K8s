@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Icon } from '../components/Icons';
-import API from '../services/api';
-import { useAuth } from '../context/AuthContext';
+import { Icon } from '../../../../components/Icons';
+import API from '../../../../services/api';
+import { useAuth } from '../../../../context/AuthContext';
 
 const statusBadge = (status) => {
   const map = {

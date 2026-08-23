@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import API from '../services/api';
-import { Icon } from '../components/Icons';
-import { Icon as LucideIcon } from '../utils/iconMapper';
+import { useAuth } from '../../../../context/AuthContext';
+import API from '../../../../services/api';
+import { Icon } from '../../../../components/Icons';
+import { Icon as LucideIcon } from '../../../../utils/iconMapper';
 
 const STATUSES = ['New', 'Contacted', 'Qualified', 'Lost', 'Converted'];
 

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import API from '../services/api';
-import { Icon } from '../components/Icons';
-import { Icon as LucideIcon } from '../utils/iconMapper';
+import API from '../../../../services/api';
+import { Icon } from '../../../../components/Icons';
+import { Icon as LucideIcon } from '../../../../utils/iconMapper';
 
 const COLUMNS = [
   { id: 'New', label: 'New Lead', icon: 'plus', color: '#2563EB', bg: '#EFF6FF' },

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import API from '../services/api';
+import API from '../../../../services/api';
 import logo from '../assets/logo.png';
-import { Icon } from '../utils/iconMapper';
+import { Icon } from '../../../../utils/iconMapper';
 
 const CampaignFormPage = () => {
   const { slug } = useParams();

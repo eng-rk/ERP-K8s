@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import API from '../services/api';
-import { Icon } from '../components/Icons';
+import { useAuth } from '../../../../context/AuthContext';
+import API from '../../../../services/api';
+import { Icon } from '../../../../components/Icons';
 
 const platformBadge = (platform) => {
   const map = { Meta: 'badge-meta', Google: 'badge-google', Email: 'badge-new', Other: 'badge-contacted' };

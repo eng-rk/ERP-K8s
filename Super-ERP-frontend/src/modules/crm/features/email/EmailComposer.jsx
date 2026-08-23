@@ -10,8 +10,8 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import FontFamily from '@tiptap/extension-font-family';
 import Highlight from '@tiptap/extension-highlight';
 import Underline from '@tiptap/extension-underline';
-import API from '../services/api';
-import { Icon as LucideIcon } from '../utils/iconMapper';
+import API from '../../../../services/api';
+import { Icon as LucideIcon } from '../../../../utils/iconMapper';
 
 // SVG Icon Helpers
 const Icon = ({ path, size = 18, color = 'currentColor', style = {} }) => (
