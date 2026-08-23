@@ -2,11 +2,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute';
 import Sidebar from './components/Sidebar';
 import AuxTopBar from './components/AuxTopBar';
-import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import DevToolsPage from './pages/DevToolsPage';
 import OnboardingModal from './components/OnboardingModal';
+import { authRoutes } from './modules/auth/routes';
 import { crmRoutes } from './modules/crm/routes';
 import { inventoryRoutes } from './modules/inventory/routes';
 import { hrmRoutes } from './modules/hrm/routes';
@@ -36,9 +36,8 @@ const AppRoutes = () => {
 
   return (
     <Routes>
-      <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+      {authRoutes({ PublicRoute })}
       <Route path="/dashboard" element={<ProtectedRoute><AppLayout><DashboardPage /></AppLayout></ProtectedRoute>} />
-
       {crmRoutes({ ProtectedRoute, AppLayout })}
       {inventoryRoutes({ ProtectedRoute, AppLayout })}
       {hrmRoutes({ ProtectedRoute, AppLayout })}
@@ -48,7 +47,6 @@ const AppRoutes = () => {
       {paymentRoutes()}
       {rtmRoutes({ ProtectedRoute, AppLayout })}
       {productRoutes({ ProtectedRoute, AppLayout })}
-
       <Route path="/devtools" element={<ProtectedRoute allowedRoles={['CRM Developer', 'System Architect', 'Super CRM Administrator']}><AppLayout><DevToolsPage /></AppLayout></ProtectedRoute>} />
       <Route path="/unauthorized" element={<AppLayout><UnauthorizedPage /></AppLayout>} />
       <Route path="*" element={<Navigate to={currentUser || user ? '/dashboard' : '/login'} replace />} />
