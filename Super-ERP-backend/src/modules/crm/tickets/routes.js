@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getTickets, getTechnologyUsers, getTicketById, addComment, createTicket, updateTicket } = require('../../../controllers/ticketController');
+const { getTickets, getTechnologyUsers, getTicketById, addComment, createTicket, updateTicket } = require('./controller');
 const { protect } = require('../../../middleware/auth');
 const { checkPermission } = require('../../../middleware/authorize');
 router.use(protect);
