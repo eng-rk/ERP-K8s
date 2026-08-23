@@ -1,2 +1,2 @@
-export { default as MySchedulePage } from '../../pages/ess/MySchedulePage';
-export { default as MyPayrollPage } from '../../pages/ess/MyPayrollPage';
+export { default as MySchedulePage } from './features/schedule';
+export { default as MyPayrollPage } from './features/payroll';
