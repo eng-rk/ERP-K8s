@@ -1,9 +1,9 @@
-// HRM Partnerships domain HTTP controller.
-const legacy = require('../../../../controllers/hrmController');
+const handlers = require('../../legacyHandlers');
+
 module.exports = {
-  createPartnership: legacy.createPartnership,
-  getPartnerships: legacy.getPartnerships,
-  createSuggestion: legacy.createSuggestion,
-  getSuggestions: legacy.getSuggestions,
-  updateSuggestionStatus: legacy.updateSuggestionStatus,
+  createPartnership: handlers.createPartnership,
+  getPartnerships: handlers.getPartnerships,
+  createSuggestion: handlers.createSuggestion,
+  getSuggestions: handlers.getSuggestions,
+  updateSuggestionStatus: handlers.updateSuggestionStatus,
 };
