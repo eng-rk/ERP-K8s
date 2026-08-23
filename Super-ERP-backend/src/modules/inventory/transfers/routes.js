@@ -1,0 +1,10 @@
+const express = require('express');
+const router = express.Router();
+const { createStockTransfer, createTransfer, getTransfers } = require('../../../controllers/inventoryController');
+const { protect } = require('../../../middleware/auth');
+const { checkPermission } = require('../../../middleware/authorize');
+router.use(protect);
+router.post('/stock/:id/execute', checkPermission('wms.transfers.execute'), createStockTransfer);
+router.post('/', checkPermission('wms.transfers.request'), createTransfer);
+router.get('/', checkPermission('wms.items.view'), getTransfers);
+module.exports = router;
