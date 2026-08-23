@@ -122,7 +122,7 @@ const CampaignFormPage = () => {
                   className="form-input"
                   placeholder="+1 234 567 8900"
                   value={form.phone}
-                  onChange={e => setForm(f => ({ ...f, phone: { ...f, phone: e.target.value } }))}
+                  onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
                   required
                 />
               </div>
