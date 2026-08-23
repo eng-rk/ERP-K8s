@@ -4,12 +4,11 @@ const controller = require('./controller');
 const { protect } = require('../../../middleware/auth');
 const { checkPermission } = require('../../../middleware/authorize');
 
-router.get('/', protect, checkPermission('crm.leads.view'), controller.getLeads);
-router.get('/distribution', protect, checkPermission('crm.leads.view'), controller.getLeadDistribution);
-router.get('/agents', protect, checkPermission('crm.leads.view'), controller.getAssignableAgents);
-router.get('/:id', protect, checkPermission('crm.leads.view'), controller.getLeadById);
-router.post('/', protect, checkPermission('crm.leads.create'), controller.createLead);
-router.put('/:id', protect, checkPermission('crm.leads.edit'), controller.updateLead);
-router.post('/:id/notes', protect, checkPermission('crm.leads.edit'), controller.addLeadNote);
+router.use(protect);
+router.get('/agents', checkPermission('crm.leads.assign'), controller.getAssignableAgents);
+router.get('/distribution', checkPermission('crm.leads.view'), controller.getLeadDistribution);
+router.route('/').get(checkPermission('crm.leads.view'), controller.getLeads).post(checkPermission('crm.leads.create'), controller.createLead);
+router.route('/:id').get(checkPermission('crm.leads.view'), controller.getLeadById).put(checkPermission('crm.leads.edit'), controller.updateLead);
+router.post('/:id/notes', checkPermission('crm.leads.edit'), controller.addLeadNote);
 
 module.exports = router;
