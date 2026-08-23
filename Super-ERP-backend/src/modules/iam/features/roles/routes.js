@@ -1,0 +1,16 @@
+const express = require('express');
+const { protect } = require('../../../../middleware/auth');
+const { checkPermission } = require('../../../../middleware/authorize');
+const controller = require('../../../../controllers/permissionController');
+
+const router = express.Router();
+router.use(protect);
+router.get('/roles', checkPermission('iam.roles.view'), controller.getAllRoles);
+router.get('/roles/:id', checkPermission('iam.roles.view'), controller.getRoleById);
+router.post('/roles', checkPermission('iam.roles.create'), controller.createRole);
+router.put('/roles/:id', checkPermission('iam.roles.edit'), controller.updateRole);
+router.delete('/roles/:id', checkPermission('iam.roles.delete'), controller.deleteRole);
+router.post('/roles/:id/clone', checkPermission('iam.roles.duplicate'), controller.cloneRole);
+router.get('/role-templates', checkPermission('iam.roles.view'), controller.getRoleTemplates);
+router.post('/role-templates/:code/create-role', checkPermission('iam.roles.create'), controller.createRoleFromTemplate);
+module.exports = router;
