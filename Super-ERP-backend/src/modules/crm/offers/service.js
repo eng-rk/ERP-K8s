@@ -27,7 +27,7 @@ function normalizeCreatePayload(body = {}) {
   if (!body.lead || !String(body.lead).trim()) throw new Error('Lead is required');
   if (!title) throw new Error('Offer title is required');
   if (!description) throw new Error('Offer description is required');
-  const currency = String(body.currency || 'USD').trim().toUpperCase();
+
   return {
     lead: body.lead,
     title,
@@ -36,10 +36,42 @@ function normalizeCreatePayload(body = {}) {
     validUntil: parseValidUntil(body.validUntil),
     offerType: body.offerType || 'Service',
     catalogProduct: parseCatalogProduct(body.catalogProduct),
-    currency,
+    currency: String(body.currency || 'USD').trim().toUpperCase(),
     currencySymbol: body.currencySymbol || '',
     notes: body.notes ? String(body.notes).trim() : ''
   };
 }
 
-module.exports = { parsePrice, parseValidUntil, parseCatalogProduct, normalizeCreatePayload };
+function assertOwnerOrAdmin(offer, user) {
+  const admin = ['Super CRM Administrator', 'System Architect'].includes(user?.role);
+  const owner = offer?.createdBy && user?._id && offer.createdBy.toString() === user._id.toString();
+  if (!admin && !owner) throw Object.assign(new Error('Not authorized to update this offer'), { statusCode: 403 });
+}
+
+function assertDraftOrAdmin(offer, user) {
+  const admin = ['Super CRM Administrator', 'System Architect'].includes(user?.role);
+  if (!admin && offer?.status !== 'Draft') {
+    throw Object.assign(new Error('Sent offers cannot be edited'), { statusCode: 403 });
+  }
+}
+
+function assertValidPriceForOfferType(price, offerType, minimum = 0) {
+  const parsed = parsePrice(price);
+  if (parsed < Number(minimum || 0)) {
+    throw Object.assign(
+      new Error(`Minimum price for ${offerType === 'Product' ? 'product' : 'offer'} is ${Number(minimum || 0).toFixed(2)}`),
+      { statusCode: 400 }
+    );
+  }
+  return parsed;
+}
+
+module.exports = {
+  parsePrice,
+  parseValidUntil,
+  parseCatalogProduct,
+  normalizeCreatePayload,
+  assertOwnerOrAdmin,
+  assertDraftOrAdmin,
+  assertValidPriceForOfferType
+};
