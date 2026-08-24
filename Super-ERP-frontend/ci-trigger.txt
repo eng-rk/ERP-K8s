@@ -1,0 +1,1 @@
+Frontend CI trigger for validating the current main frontend after lint configuration cleanup.
