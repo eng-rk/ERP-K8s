@@ -1,0 +1,10 @@
+const service = require('./service');
+const send = (res, promise) => promise.then(data => res.json({ success: true, data })).catch(err => res.status(err.status || 500).json({ success: false, message: err.message }));
+const actor = req => req.user?._id || req.user?.id;
+exports.list = (req,res) => send(res, service.list(req.query.employeeId ? { employeeId: req.query.employeeId } : {}));
+exports.get = (req,res) => send(res, service.get(req.params.id));
+exports.create = (req,res) => send(res, service.create(req.body, actor(req)));
+exports.update = (req,res) => send(res, service.update(req.params.id, req.body, actor(req)));
+exports.remove = (req,res) => send(res, service.remove(req.params.id));
+exports.addSalaryComponent = (req,res) => send(res, service.addSalaryComponent(req.params.id, req.body, actor(req)));
+exports.updateDocumentStatus = (req,res) => send(res, service.updateDocumentStatus(req.params.id, req.params.document, req.body.status, req.body.remarks, actor(req)));
