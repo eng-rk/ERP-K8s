@@ -32,7 +32,7 @@ const {
   getAllPaymentMethods,
   approvePaymentMethod,
   rejectPaymentMethod,
-} = require('../controllers/paymentMethodController');
+} = require('../modules/payroll/features/payment-methods/controller');
 
 // ─── Payroll Runs ────────────────────────────────────────────────
 router.get('/runs',              protect, checkPermission('payroll.engine.view_runs'), getPayrollRuns);
@@ -63,8 +63,8 @@ router.post('/agent/personal',   protect, checkPermission('payroll.engine.view_r
 router.post('/agent/manager',    protect, checkPermission('payroll.engine.view_runs'), managerAgentQuery);
 
 // ─── Payment Methods (Manager) ───────────────────────────────────
-router.get('/payment-methods',              protect, checkPermission('payroll.banking.verify_employee'), getAllPaymentMethods);
-router.put('/payment-methods/:id/approve',  protect, checkPermission('payroll.banking.verify_employee'), approvePaymentMethod);
-router.put('/payment-methods/:id/reject',   protect, checkPermission('payroll.banking.verify_employee'), rejectPaymentMethod);
+router.get('/payment-methods',             protect, checkPermission('payroll.banking.verify_employee'), getAllPaymentMethods);
+router.put('/payment-methods/:id/approve', protect, checkPermission('payroll.banking.verify_employee'), approvePaymentMethod);
+router.put('/payment-methods/:id/reject',  protect, checkPermission('payroll.banking.verify_employee'), rejectPaymentMethod);
 
 module.exports = router;
