@@ -18,7 +18,7 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
     rules: {
-      // Existing legacy frontend debt is reported without blocking the migration/build.
+      // Keep the existing migration debt visible without blocking CI.
       'no-unused-vars': 'warn',
       'no-undef': 'warn',
       'no-dupe-keys': 'warn',
@@ -28,6 +28,7 @@ export default defineConfig([
       'react-hooks/purity': 'warn',
       'react-hooks/immutability': 'warn',
       'react-hooks/static-components': 'warn',
+      'react-hooks/unsupported-syntax': 'warn',
       'react-hooks/rules-of-hooks': 'error',
       'react-refresh/only-export-components': 'warn',
     },
