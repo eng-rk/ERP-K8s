@@ -1,0 +1,11 @@
+const express = require('express');
+const controller = require('./controller');
+const router = express.Router();
+router.get('/', controller.list);
+router.get('/:id', controller.get);
+router.post('/', controller.create);
+router.put('/:id', controller.update);
+router.delete('/:id', controller.remove);
+router.post('/:id/salary-components', controller.addSalaryComponent);
+router.patch('/:id/documents/:document', controller.updateDocumentStatus);
+module.exports = router;
