@@ -25,10 +25,10 @@ import AuxBootstrap from './store/AuxBootstrap';
 const AppLayout = ({ children }) => (
   <div className="app-layout">
     <Sidebar />
+    <AccountingQuickAccess />
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <AuxTopBar />
       <nav aria-label="ERP modules" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderBottom: '1px solid #e5e7eb', background: '#fff', flexWrap: 'wrap' }}>
-        <AccountingQuickAccess />
         <NavLink to="/hrm/extensions" style={{ padding: '7px 12px', borderRadius: 7, textDecoration: 'none', fontWeight: 600, border: '1px solid #dbe3ea', color: '#18324a', background: '#fff' }}>
           HRM Extensions
         </NavLink>
