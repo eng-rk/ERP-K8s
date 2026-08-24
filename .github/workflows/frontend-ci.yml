@@ -47,3 +47,5 @@ jobs:
           name: frontend-dist
           path: Super-ERP-frontend/dist
           retention-days: 7
+
+      # Force a fresh validation when workflow changes are pushed to main.
