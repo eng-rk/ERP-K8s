@@ -18,8 +18,9 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
     rules: {
-      // Existing migration debt should remain visible without blocking CI.
+      // Migration debt stays visible in CI output while the codebase is consolidated.
       'no-unused-vars': 'warn',
+      'no-undef': 'warn',
       'react-hooks/set-state-in-effect': 'warn',
       'react-hooks/purity': 'warn',
       'react-hooks/immutability': 'warn',
