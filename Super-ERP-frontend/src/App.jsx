@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute';
 import Sidebar from './components/Sidebar';
 import AuxTopBar from './components/AuxTopBar';
@@ -10,6 +10,8 @@ import { authRoutes } from './modules/auth/routes';
 import { crmRoutes } from './modules/crm/routes';
 import { inventoryRoutes } from './modules/inventory/routes';
 import { hrmRoutes } from './modules/hrm/routes';
+import { hrmExtensionRoutes } from './modules/hrmExtensions/routes';
+import { accountingRoutes } from './modules/accounting/routes';
 import { essRoutes } from './modules/ess/routes';
 import { iamRoutes } from './modules/iam/routes';
 import { settingsRoutes } from './modules/settings/routes';
@@ -25,6 +27,10 @@ const AppLayout = ({ children }) => (
     <Sidebar />
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <AuxTopBar />
+      <nav aria-label="ERP modules" style={{ display: 'flex', gap: 8, padding: '8px 16px', borderBottom: '1px solid #e5e7eb', background: '#fff' }}>
+        <NavLink to="/accounting" style={{ padding: '6px 10px', borderRadius: 6, textDecoration: 'none' }}>Accounting</NavLink>
+        <NavLink to="/hrm/extensions" style={{ padding: '6px 10px', borderRadius: 6, textDecoration: 'none' }}>HRM Extensions</NavLink>
+      </nav>
       <main className="main-content" style={{ marginTop: 48 }}>{children}</main>
     </div>
   </div>
@@ -41,6 +47,8 @@ const AppRoutes = () => {
       {crmRoutes({ ProtectedRoute, AppLayout })}
       {inventoryRoutes({ ProtectedRoute, AppLayout })}
       {hrmRoutes({ ProtectedRoute, AppLayout })}
+      {hrmExtensionRoutes({ ProtectedRoute, AppLayout })}
+      {accountingRoutes({ ProtectedRoute, AppLayout })}
       {essRoutes({ ProtectedRoute, AppLayout })}
       {iamRoutes({ ProtectedRoute, AppLayout })}
       {settingsRoutes({ ProtectedRoute, AppLayout })}
