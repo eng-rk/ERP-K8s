@@ -1,0 +1,10 @@
+const express = require('express');
+const controller = require('./controller');
+const router = express.Router();
+router.get('/accounts', controller.listAccounts);
+router.post('/accounts', controller.createAccount);
+router.get('/cost-centers', controller.listCostCenters);
+router.post('/cost-centers', controller.createCostCenter);
+router.get('/journals', controller.listJournals);
+router.post('/journals', controller.createJournal);
+module.exports = router;
