@@ -5,7 +5,6 @@ import AuxTopBar from './components/AuxTopBar';
 import DashboardPage from './pages/DashboardPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import DevToolsPage from './pages/DevToolsPage';
-import OnboardingModal from './components/OnboardingModal';
 import AccountingQuickAccess from './components/AccountingQuickAccess';
 import { authRoutes } from './modules/auth/routes';
 import { crmRoutes } from './modules/crm/routes';
@@ -70,7 +69,6 @@ function App() {
     <BrowserRouter>
       <AuxBootstrap />
       <AppRoutes />
-      <OnboardingModal />
     </BrowserRouter>
   );
 }
