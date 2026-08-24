@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import DevToolsPage from './pages/DevToolsPage';
 import OnboardingModal from './components/OnboardingModal';
+import AccountingQuickAccess from './components/AccountingQuickAccess';
 import { authRoutes } from './modules/auth/routes';
 import { crmRoutes } from './modules/crm/routes';
 import { inventoryRoutes } from './modules/inventory/routes';
@@ -27,9 +28,11 @@ const AppLayout = ({ children }) => (
     <Sidebar />
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <AuxTopBar />
-      <nav aria-label="ERP modules" style={{ display: 'flex', gap: 8, padding: '8px 16px', borderBottom: '1px solid #e5e7eb', background: '#fff' }}>
-        <NavLink to="/accounting" style={{ padding: '6px 10px', borderRadius: 6, textDecoration: 'none' }}>Accounting</NavLink>
-        <NavLink to="/hrm/extensions" style={{ padding: '6px 10px', borderRadius: 6, textDecoration: 'none' }}>HRM Extensions</NavLink>
+      <nav aria-label="ERP modules" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderBottom: '1px solid #e5e7eb', background: '#fff', flexWrap: 'wrap' }}>
+        <AccountingQuickAccess />
+        <NavLink to="/hrm/extensions" style={{ padding: '7px 12px', borderRadius: 7, textDecoration: 'none', fontWeight: 600, border: '1px solid #dbe3ea', color: '#18324a', background: '#fff' }}>
+          HRM Extensions
+        </NavLink>
       </nav>
       <main className="main-content" style={{ marginTop: 48 }}>{children}</main>
     </div>
